@@ -1,5 +1,5 @@
 <?php
-phpinfo();
+
 define('INCLUDE_DIR', 'inc/');
 define('MODULE_DIR', 'modules/');
 define('CLASS_DIR', 'classes/');
