@@ -1,0 +1,57 @@
+<?php
+
+$niche_config = array(
+    0 => array(
+        'name' => 'cougar',
+        'age_male' => false,
+        'age_female' => 30,
+        'build' => false,
+        'orientation' => 1,
+        'relationships' => false,
+        'ethnic_origin' => false,
+        'marital_status' => false,
+    ),
+    1 => array(
+        'name' => 'adult',
+        'age_male' => false,
+        'age_female' => false,
+        'build' => false,
+        'orientation' => 1,
+        'relationships' => false,
+        'ethnic_origin' => false,
+        'marital_status' => false,
+    ),
+    2 => array(
+        'name' => 'divorced',
+        'age_male' => 25,
+        'age_female' => 25,
+        'build' => false,
+        'orientation' => 1,
+        'relationships' => array(
+            0 => 'separated',
+            1 => 'divorced',
+        ),
+        'ethnic_origin' => false,
+        'marital_status' => 'divorced',
+    ),
+    3 => array(
+        'name' => ,
+        'age_male' => ,
+        'age_female' => ,
+        'build' => ,
+        'orientation' => ,
+        'relationships' => ,
+        'ethnic_origin' => ,
+        'marital_status' => ,
+    ),
+    0 => array(
+        'name' => ,
+        'age_male' => ,
+        'age_female' => ,
+        'build' => ,
+        'orientation' => ,
+        'relationships' => ,
+        'ethnic_origin' => ,
+        'marital_status' => ,
+    ),
+)

@@ -1,0 +1,123 @@
+body, table {
+    font-size: 13px;
+    font-family: sans-serif;
+    border-collapse: collapse;
+}
+
+.small2 { width:40px;}
+.default {padding:0px;}
+
+.tasks-choice {
+    background-clip: padding-box;
+    background-color: #E4E4E4;
+    background-image: linear-gradient(#F4F4F4 20%, #F0F0F0 50%, #E8E8E8 52%, #EEEEEE 100%);
+    border: 1px solid #AAAAAA;
+    border-radius: 10px;
+    box-shadow: 0 0 2px #FFFFFF inset, 0 1px 0 rgba(0, 0, 0, 0.05);
+    color: #333333;
+    cursor: default;
+    line-height: 13px;
+    margin: 3px 0 3px 5px;
+    padding: 5px 5px 5px 5px;
+    position: relative;
+    list-style-type: none;
+    float: left;
+    cursor: pointer;
+}
+
+table, td, tr {
+    border: 1px solid black;
+}
+
+.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;    
+}
+
+.selectable {
+    -moz-user-select: text;
+    -khtml-user-select: text;
+    -webkit-user-select: text;
+    -o-user-select: text;
+    user-select: text;
+}
+
+#data-sheet tr td{
+	border: 1px solid #dddddd;
+	border-collapse:collapse;
+}
+
+.red {
+	background-color: #ff5050;
+}
+
+.yellow {
+	background-color: #efff00;
+}
+
+.green {
+	background-color: #d0ffd0;
+}
+
+.clearer {clear:both;height:1px;line-height:1px;}
+
+
+.link {
+    cursor: pointer;
+    color: #333333;
+    text-decoration: none;
+    border-bottom: 1px dashed #000080;
+}	
+.task-container {
+    display: inline-block;
+    font-size: 13px;
+    position: relative;
+    vertical-align: middle;
+}
+
+.task-container:nth-child(3) {
+    -moz-user-select: none;
+    display: none;
+    font-size: 13px;
+    position: relative;
+    vertical-align: middle;
+}
+
+.task-choices {
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+.task-container a {
+    cursor: pointer;
+    text-decoration: none;
+}
+
+#loading {
+  background-color: rgba(100, 100, 100, 0.7);
+  opacity: 0.7;
+  position: absolute;
+  display: none;
+  width: 100%;
+  height: 100%;
+  text-align:center;
+  left: 0;
+  right: 0;
+  top: 0px;
+}
+
+#informer {
+  background-color: rgba(50, 50, 50, 0.7);
+  opacity: 1;
+  color: #B0FFCA;
+  position: absolute;
+  display: none;
+  width: 450px;
+  height: 105px;
+  text-align:center;
+  margin: 200px 35%;
+}
