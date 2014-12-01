@@ -226,6 +226,7 @@ switch (device) {
                     document.getElementById('CardAuthorizationModel_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = card_year;
                     $('#CardAuthorizationModel_securityNumber').val(cvv);
                     $('#AgeVerificationPageModel_terms').click();
+                    $('#avp').submit();
                 } else if(document.location.pathname == '/verify/ageVerificationPage')
                 {
                     card_number = 4012888888881881;
@@ -293,7 +294,7 @@ switch (device) {
                     document.getElementById('AgeVerificationPageModel_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = card_year;
                     $('#AgeVerificationPageModel_securityNumber').val(cvv);
                     $('#AgeVerificationPageModel_terms').click();
-
+                    $('#avp').submit();
                 }
             }, phantom);
         },
@@ -305,26 +306,20 @@ switch (device) {
                 }
             }, phantom);
         },*/
+        
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom, email, platform) {
-                if(document.location.pathname == '/pay/features' || document.location.pathname == '/verify/cardAuthorization') {
-                    $('#avp').submit();
-                    var returned_email = email;
-                } else if(platform == 'm') {
-                    var returned_email = email;
-                } else {
-                    var returned_email = false;
-                    if($('#RegistrationCompleteForm_resendEmail').val() != 'undefined' && $('#RegistrationCompleteForm_resendEmail') !== null)
-                    {
-                        $('#resend-confirm-mail').click();
-                        var returned_email =  $('#RegistrationCompleteForm_resendEmail').val();
-                    } else {
-                        var returned_email = email;
-                    }
+            page.evaluate(function(phantom) {
+                if(document.location.pathname == '/pay/features') {
+                    $('#subscription').submit();
                 }
-                console.log(returned_email);
-            }, phantom, email, platform);
+            }, phantom);
+        },
+        function() {
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom, email) {
+                console.log(email);
+            }, phantom, email);
         },
     ];
 
@@ -332,7 +327,7 @@ interval = setInterval(function() {
   if (!loadInProgress && typeof steps[testindex] == "function") {
     func = steps[testindex];
     func();
-    page.render('screenshots/'+uniqueAdding+'('+(testindex) + ").png");
+    page.render('screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
