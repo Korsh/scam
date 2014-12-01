@@ -321,7 +321,7 @@ var old_value;
                                             $('#'+answer.request_id+'>td')[0].innerHTML = 'success';
                                             $('#'+answer.request_id+'>td')[1].innerHTML = answer.data[0].email;
                                             $('#'+answer.request_id).append('<td>'+answer.data[0].id+'</a></td>');
-                                            $('#'+answer.request_id).append('<td><a href="https://'+answer.data[0].site_domain+'/site/autologin/key/'+answer.data[0].key+'" target="_blank">https://'+answer.data[0].site_domain+'/site/autologin/key/'+answer.data[0].key+'</a></td>');
+                                            $('#'+answer.request_id).append('<td><a href="https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'" target="_blank">https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'</a></td>');
                                         } else {
                                             $('#'+answer.request_id+'>td')[0].innerHTML = '<input type="button" id="resend" value="resend" onClick="resend(this)" data="'+answer.request_id+'">';
                                         }
@@ -388,7 +388,7 @@ var old_value;
                                             $('#'+answer.request_id+'>td')[0].innerHTML = 'success';
                                             $('#'+answer.request_id+'>td')[1].innerHTML = answer.data[0].email;
                                             $('#'+answer.request_id).append('<td>'+answer.data[0].id+'</a></td>');
-                                            $('#'+answer.request_id).append('<td><a href="https://'+answer.data[0].site_domain+'/site/autologin/key/'+answer.data[0].key+'" target="_blank">https://'+answer.data[0].site_domain+'/site/autologin/key/'+answer.data[0].key+'</a></td>');
+                                            $('#'+answer.request_id).append('<td><a href="https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'" target="_blank">https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'</a></td>');
                                         } else {
                                             $('#'+answer.request_id+'>td')[0].innerHTML = '<input type="button" id="resend" value="resend" onClick="resend(this)" data="'+answer.request_id+'">';
                                         }
@@ -565,7 +565,7 @@ function resend(event)
                 $('#'+answer.request_id+'>td')[0].innerHTML = 'success';
                 $('#'+answer.request_id+'>td')[1].innerHTML = answer.data[0].email;
                 $('#'+answer.request_id).append('<td>'+answer.data[0].id+'</a></td>');
-                $('#'+answer.request_id).append('<td><a href="https://'+answer.data[0].site_domain+'/site/autologin/key/'+answer.data[0].key+'" target="_blank">https://'+answer.data[0].site_domain+'/site/autologin/key/'+answer.data[0].key+'</a></td>');
+                $('#'+answer.request_id).append('<td><a href="https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'" target="_blank">https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'</a></td>');
             } else {
                 $('#'+answer.request_id+'>td')[0].innerHTML = '<input type="button" id="resend" value="resend" onClick="resend(this)" data="'+answer.request_id+'">';
             }

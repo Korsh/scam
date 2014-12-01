@@ -18,7 +18,7 @@ require_once(INCLUDE_DIR . 'user_agents_config.php');
 require_once(CLASS_DIR . 'UserInfo.class.php');
 require_once(CLASS_DIR . 'UserActions.class.php');
 
-define('SMARTY_DIR', LIB_DIR . 'Smarty/');
+define('SMARTY_DIR', LIB_DIR . 'Smarty3/');
 require_once(SMARTY_DIR . 'Smarty.class.php');
 define('SMARTY_TEMPLATE_DIR', 'templates/');
 define('SMARTY_TEMPLATE_С_DIR', SMARTY_TEMPLATE_DIR . 'templates_c/');

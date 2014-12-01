@@ -61,22 +61,24 @@ switch (device) {
     page.viewportSize = { width: 1024, height: 768 };
 
     page.onConsoleMessage = function(msg) {
+    console.log(msg);
     };
      
-page.onError = function(msg, trace) {
+/*page.onError = function(msg, trace) {
 
-  var msgStack = ['ERROR: ' + msg];
+  var msgStack = [msg];
 
   if (trace && trace.length) {
     msgStack.push('TRACE:');
     trace.forEach(function(t) {
-      msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
+
+      //msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
     });
   }
 
   console.error(msgStack.join('\n'));
   return;
-};
+};*/
     page.onLoadStarted = function() {
         loadInProgress = true;
     };
@@ -127,9 +129,6 @@ page.onError = function(msg, trace) {
         },*/
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.onConsoleMessage = function(msg) {
-                console.log(msg);
-            };
             page.evaluate(function(phantom, gender, orientation, year, month, day, email, password, city, screenname) {
                 $('.btn--popup').click();
                 $('#UserForm_gender').val(gender);
@@ -308,10 +307,6 @@ page.onError = function(msg, trace) {
         },*/
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.onConsoleMessage = function(msg) {
-                    console.log(msg);
-            };
-            
             page.evaluate(function(phantom, email, platform) {
                 if(document.location.pathname == '/pay/features' || document.location.pathname == '/verify/cardAuthorization') {
                     $('#avp').submit();

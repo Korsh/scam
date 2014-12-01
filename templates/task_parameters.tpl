@@ -8,7 +8,7 @@ $(function() {
 
 
     $(".country").chosen(
-        {no_results_text: "Oops, nothing found!"},{width: "95%"}
+        {no_results_text: "Oops, nothing found!",width: "95%"}
     ); 
 
     var config = {

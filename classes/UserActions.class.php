@@ -538,9 +538,10 @@ class UserActions
             $userInfo['id']         = isset($elements[0]['tr'][0]['td'][0]['#text']) ? $elements[0]['tr'][0]['td'][0]['#text'] : null;
             $userInfo['mail']       = isset($elements[0]['tr'][2]['td'][0]['#text']) ? $elements[0]['tr'][2]['td'][0]['#text'] : null;
             $userInfo['screenname'] = isset($elements[0]['tr'][4]['td'][0]['#text']) ? $elements[0]['tr'][4]['td'][0]['#text'] : null;
-            $userInfo['country']   = isset($elements[0]['tr'][13]['td'][0]['#text']) ? strtolower($elements[0]['tr'][13]['td'][0]['#text']) : null;
+            $userInfo['country']    = isset($elements[0]['tr'][13]['td'][0]['#text']) ? strtolower($elements[0]['tr'][13]['td'][0]['#text']) : null;
             $userInfo['birthday']   = isset($elements[0]['tr'][14]['td'][0]['#text']) ? strtolower($elements[0]['tr'][14]['td'][0]['#text']) : null;
-            if (strpos($userInfo['mail'], '@ufins.com') || strpos($userInfo['mail'], 'import') || strpos($userInfo['mail'], '_import') || strpos($userInfo['mail'], '@cupid.com')) {
+            $traffic                = isset($elements[0]['tr'][34]['td'][0]['#text']) ? strtolower($elements[0]['tr'][34]['td'][0]['#text']) : null;
+            if ($traffic == "unparsed" || strpos($userInfo['mail'], '@ufins.com') || strpos($userInfo['mail'], 'import') || strpos($userInfo['mail'], '_import') || strpos($userInfo['mail'], '@cupid.com')) {
                 $userInfo['99'] = true;
             } else {
                 $userInfo['99'] = false;

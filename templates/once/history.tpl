@@ -2,7 +2,7 @@ Once tasks history
 <div class="clearer"></div>
 <div class="task-container">
 	<ul class="task-choices">
-	{foreach item=task from=$tasks_list key=task_id loop=20}
+	{foreach item=task from=$tasks_list key=task_id}
 		<a href="/once/view/{$task_id}">
 			<li class="tasks-choice">
 				{$task_id|date_format:"%D"}, {$task_id|date_format:"%H:%S"}<hr>

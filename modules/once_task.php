@@ -48,7 +48,7 @@ if (isset($_REQUEST['ajax'])) {
 
         $script = "scriptsJS/registerUser.js";
         $debug = false;
-        if($_GET['debug'] || $debug) {
+        if(isset($_GET['debug']) || $debug) {
                 echo trim("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city ". $referer);
                 $script                 = "scriptsJS/confirmUser.js";
                 $autologin              = "https://quierorollo.com/site/autologin/key/76822422ba1924be5c478c17ae0b7702";
@@ -64,7 +64,7 @@ if (isset($_REQUEST['ajax'])) {
         /*--proxy=".$proxy[$country]['domain'].":".$proxy[$country]['port']." --proxy-auth=andreya@ufins.com:srmlvpkk*/
 
         $script_result = trim(shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city ". $referer));
-        $email  = is_valid_email_address($script_result) ? $script_result : array('response' => $script_result  , 'result' => 'false');
+        $email = is_valid_email_address($script_result) ? $script_result : array('response' => $script_result  , 'result' => 'false');
         if(is_array($email)) {
             preg_match_all("/([A-Za-z.0-9+]*[@]{1}[A-Za-z.0-9]*)/i", $email['response'], $matches);
             $email = is_valid_email_address($matches[0][0]) ? $matches[0][0] : false;
@@ -77,13 +77,14 @@ if (isset($_REQUEST['ajax'])) {
                 exit;
             }
         }
+
         $ui->syncUserInfo($email);
         $response = $ui->findByEmail($email);
         if (!empty($response['data'])) {
             $response['request_id'] = $request_id;
             $script                 = "scriptsJS/confirmUser.js";
-            $site = $response['data'][0]['site_domain'];
-            $autologin              = 'https://' . $response['data'][0]['site_domain'] . '/site/autologin/key/' . $response['data'][0]['key'];
+            $site = $response['data'][0]['siteDomain'];
+            $autologin              = 'https://' . $response['data'][0]['siteDomain'] . '/site/autologin/key/' . $response['data'][0]['key'];
             $output                 = shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site");
 
             $ui->saveUserTask($task_id, $response['data'][0]['key']);

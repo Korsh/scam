@@ -151,7 +151,7 @@ class UserInfo
                 curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($this->ch, REFERER, "https://my.ufins.com/user/edit?user_id=3dc38936fd1b11e3a082d4bed9a94a8f");
                 
-                curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_buildQuery($arr));
+                curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($arr));
                 $out = curl_exec($this->ch);
             }
             //var_dump($userInfo);
@@ -188,7 +188,7 @@ class UserInfo
         curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'cookie.txt');
         curl_setopt($this->ch, CURLOPT_VERBOSE, 1);
         curl_setopt($this->ch, CURLOPT_POST, true);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_buildQuery($postArr));
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($postArr));
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
         $out = curl_exec($this->ch);
     }
@@ -965,6 +965,188 @@ class UserInfo
         }
     }
     
+    function syncDc($param)
+    {
+        try {
+            $dc_synced_deleteQuery_ph = $this->db->prepare("
+                DELETE FROM 
+                    `temp_profiles` 
+                WHERE 
+                    `email` = :curr_mail
+            ;");
+            $dc_synced_deleteQuery_ph->bindParam(':curr_mail', $param);
+            $dc_synced_deleteQuery_ph->execute();
+        }
+        catch (PDOException $e) {
+            echo $e->getMessage();
+            file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
+            return false;
+        }
+    }
+    
+    public function findByEmail($email)
+    {
+        
+        if (is_valid_email_address($email)) {
+            try {
+                $findByEmailQuery = $this->db->prepare("
+                SELECT           
+                    `profile`.`id`,
+                    `profile`.`mail`,
+                    `profile`.`login`,
+                    `profile`.`password`,
+                    `profile`.`key`,
+                    `sites_config`.`site_name` as site,
+                    `sites_config`.`site_domain`,
+                    `profile`.`gender`,
+                    `profile`.`orientation`,
+                    `profile`.`fname`,
+                    `profile`.`lname`,
+                    `profile`.`country`,
+                    `profile`.`birthday`,
+                    `profile`.`reg_time`,
+                    `profile`.`active`,
+                    `profile`.`traffic`,
+                    `profile`.`platform`,
+                    `profile`.`ll`,
+                    `profile`.`chats`,
+                    `profile`.`site_id`
+                FROM
+                    `profile`
+                INNER JOIN 
+                    `sites_config`
+                ON
+                    `profile`.`site_id` = `sites_config`.`site_id`
+                WHERE
+                    `mail` = :mail
+                LIMIT 1
+            ;");
+                $findByEmailQuery->bindParam(':mail', $email);
+                $findByEmailQuery->execute();
+            }
+            catch (PDOException $e) {
+                echo $e->getMessage();
+                file_put_contents('PDOErrors.txt', $e->getMessage() . '\r\n', FILE_APPEND);
+                return false;
+            }
+            
+            if ($findByEmailQuery->rowCount() > 0) {
+                
+                $i = 0;
+                
+                while ($row = $findByEmailQuery->fetch()) {
+                    $answer['data'][$i]['site']        = $row['site'];
+                    $answer['data'][$i]['gender']      = $row['gender'];
+                    $answer['data'][$i]['country']     = $row['country'];
+                    $answer['data'][$i]['key']         = $row['key'];
+                    $answer['data'][$i]['regTime']    = $row['reg_time'];
+                    $answer['data'][$i]['id']          = $row['id'];
+                    $answer['data'][$i]['email']       = $row['mail'];
+                    $answer['data'][$i]['password']    = $row['password'];
+                    $answer['data'][$i]['traffic']     = $row['traffic'];
+                    $answer['data'][$i]['login']       = $row['login'];
+                    $answer['data'][$i]['orientation'] = $row['orientation'];
+                    $answer['data'][$i]['fname']       = $row['fname'];
+                    $answer['data'][$i]['lname']       = $row['lname'];
+                    $answer['data'][$i]['birthday']    = $row['birthday'];
+                    $answer['data'][$i]['active']      = $row['active'];
+                    $answer['data'][$i]['platform']    = $row['platform'];
+                    $answer['data'][$i]['ll']          = $row['ll'];
+                    $answer['data'][$i]['chatsCount'] = $row['chats'];
+                    $answer['data'][$i]['siteId']     = $row['site_id'];
+                    $answer['data'][$i]['siteDomain'] = $row['site_domain'];
+                    $i++;
+                }
+                return $answer;
+            } else {
+                unset($STH);
+                return false;
+            }
+        }
+    }
+    
+    public function findById($id)
+    {
+        
+        if (isset($id)) {
+            try {
+                $findByIdQuery = $this->db->prepare("
+          SELECT           
+                  `profile`.`id`,
+                  `profile`.`mail`,
+                  `profile`.`login`,
+                  `profile`.`password`,
+                  `profile`.`key`,
+                  `sites_config`.`site_name` as site,
+                  `profile`.`gender`,
+                  `profile`.`orientation`,
+                  `profile`.`fname`,
+                  `profile`.`lname`,
+                  `profile`.`country`,
+                  `profile`.`birthday`,
+                  `profile`.`reg_time`,
+                  `profile`.`active`,
+                  `profile`.`traffic`,
+                  `profile`.`platform`,
+                  `profile`.`ll`,
+                  `profile`.`chats`,
+                  `profile`.`site_id`,
+                  `profile`.`searchable`,
+                  `profile`.`confirmed`
+          FROM
+            `profile`
+          JOIN 
+            `sites_config`
+          ON
+            `profile`.`site_id` = `sites_config`.`site_id`
+          WHERE
+        `id` = :id
+          LIMIT 1
+        ;");
+                $findByIdQuery->bindParam(':id', $id);
+                $findByIdQuery->execute();
+            }
+            catch (PDOException $e) {
+                echo $e->getMessage();
+                file_put_contents('PDOErrors.txt', $e->getMessage() . '\r\n', FILE_APPEND);
+                return false;
+            }
+            
+            if ($findByIdQuery->rowCount() > 0) {
+                
+                $i = 0;
+                
+                while ($row = $findByIdQuery->fetch()) {
+                    $answer['data'][$i]['site']        = $row['site'];
+                    $answer['data'][$i]['gender']      = $row['gender'];
+                    $answer['data'][$i]['country']     = $row['country'];
+                    $answer['data'][$i]['key']         = $row['key'];
+                    $answer['data'][$i]['regTime']    = $row['reg_time'];
+                    $answer['data'][$i]['id']          = $row['id'];
+                    $answer['data'][$i]['email']       = $row['mail'];
+                    $answer['data'][$i]['password']    = $row['password'];
+                    $answer['data'][$i]['traffic']     = $row['traffic'];
+                    $answer['data'][$i]['login']       = $row['login'];
+                    $answer['data'][$i]['orientation'] = $row['orientation'];
+                    $answer['data'][$i]['fname']       = $row['fname'];
+                    $answer['data'][$i]['lname']       = $row['lname'];
+                    $answer['data'][$i]['birthday']    = $row['birthday'];
+                    $answer['data'][$i]['active']      = $row['active'];
+                    $answer['data'][$i]['platform']    = $row['platform'];
+                    $answer['data'][$i]['ll']          = $row['ll'];
+                    $answer['data'][$i]['chatsCount'] = $row['chats'];
+                    $answer['data'][$i]['searchable']  = $row['searchable'];
+                    $answer['data'][$i]['confirmed']   = $row['confirmed'];
+                    $answer['data'][$i]['siteId']     = $row['site_id'];
+                    $i++;
+                }
+                return $answer;
+            } else {
+                unset($STH);
+                return false;
+            }
+        }
+    }
     /*--- not actual
     
     
@@ -1256,189 +1438,12 @@ class UserInfo
         }
     }
     
-    public function findByEmail($email)
-    {
-        
-        if (is_valid_email_address($email)) {
-            try {
-                $findByEmailQuery = $this->db->prepare("
-                SELECT           
-                    `profile`.`id`,
-                    `profile`.`mail`,
-                    `profile`.`login`,
-                    `profile`.`password`,
-                    `profile`.`key`,
-                    `sites_config`.`site_name` as site,
-                    `sites_config`.`site_domain`,
-                    `profile`.`gender`,
-                    `profile`.`orientation`,
-                    `profile`.`fname`,
-                    `profile`.`lname`,
-                    `profile`.`country`,
-                    `profile`.`birthday`,
-                    `profile`.`reg_time`,
-                    `profile`.`active`,
-                    `profile`.`traffic`,
-                    `profile`.`platform`,
-                    `profile`.`ll`,
-                    `profile`.`chats`,
-                    `profile`.`site_id`
-                FROM
-                    `profile`
-                INNER JOIN 
-                    `sites_config`
-                ON
-                    `profile`.`site_id` = `sites_config`.`site_id`
-                WHERE
-                    `mail` = :mail
-                LIMIT 1
-            ;");
-                $findByEmailQuery->bindParam(':mail', $email);
-                $findByEmailQuery->execute();
-            }
-            catch (PDOException $e) {
-                echo $e->getMessage();
-                file_put_contents('PDOErrors.txt', $e->getMessage() . '\r\n', FILE_APPEND);
-                return false;
-            }
-            
-            if ($findByEmailQuery->rowCount() > 0) {
-                
-                $i = 0;
-                
-                while ($row = $findByEmailQuery->fetch()) {
-                    $answer['data'][$i]['site']        = $row['site'];
-                    $answer['data'][$i]['gender']      = $row['gender'];
-                    $answer['data'][$i]['country']     = $row['country'];
-                    $answer['data'][$i]['key']         = $row['key'];
-                    $answer['data'][$i]['regTime']    = $row['reg_time'];
-                    $answer['data'][$i]['id']          = $row['id'];
-                    $answer['data'][$i]['email']       = $row['mail'];
-                    $answer['data'][$i]['password']    = $row['password'];
-                    $answer['data'][$i]['traffic']     = $row['traffic'];
-                    $answer['data'][$i]['login']       = $row['login'];
-                    $answer['data'][$i]['orientation'] = $row['orientation'];
-                    $answer['data'][$i]['fname']       = $row['fname'];
-                    $answer['data'][$i]['lname']       = $row['lname'];
-                    $answer['data'][$i]['birthday']    = $row['birthday'];
-                    $answer['data'][$i]['active']      = $row['active'];
-                    $answer['data'][$i]['platform']    = $row['platform'];
-                    $answer['data'][$i]['ll']          = $row['ll'];
-                    $answer['data'][$i]['chatsCount'] = $row['chats'];
-                    $answer['data'][$i]['siteId']     = $row['site_id'];
-                    $answer['data'][$i]['siteDomain'] = $row['site_domain'];
-                    $i++;
-                }
-                return $answer;
-            } else {
-                unset($STH);
-                return false;
-            }
-        }
-    }
+
     
 
-    public function findById($id)
-    {
-        
-        if (isset($id)) {
-            try {
-                $findByIdQuery = $this->db->prepare("
-          SELECT           
-                  `id`,
-                  `mail`,
-                  `login`,
-                  `password`,
-                  `key`,
-                  `sites_config`.`site_name` as site,
-                  `gender`,
-                  `orientation`,
-                  `fname`,
-                  `lname`,
-                  `country`,
-                  `birthday`,
-                  `reg_time`,
-                  `active`,
-                  `traffic`,
-                  `platform`,
-                  `ll`,
-                  `chats`,
-                  `site_id`,
-                  `searchable`,
-                  `confirmed`
-          FROM
-            `profile`
-          JOIN 
-            `sites_config`
-          ON
-            `profile`.`site_id` = `sites_config`.`site_id`
-          WHERE
-        `id` = :id
-          LIMIT 1
-        ;");
-                $findByIdQuery->bindParam(':id', $id);
-                $findByIdQuery->execute();
-            }
-            catch (PDOException $e) {
-                echo $e->getMessage();
-                file_put_contents('PDOErrors.txt', $e->getMessage() . '\r\n', FILE_APPEND);
-                return false;
-            }
-            
-            if ($findByIdQuery->rowCount() > 0) {
-                
-                $i = 0;
-                
-                while ($row = $findByIdQuery->fetch()) {
-                    $answer['data'][$i]['site']        = $row['site'];
-                    $answer['data'][$i]['gender']      = $row['gender'];
-                    $answer['data'][$i]['country']     = $row['country'];
-                    $answer['data'][$i]['key']         = $row['key'];
-                    $answer['data'][$i]['regTime']    = $row['reg_time'];
-                    $answer['data'][$i]['id']          = $row['id'];
-                    $answer['data'][$i]['email']       = $row['mail'];
-                    $answer['data'][$i]['password']    = $row['password'];
-                    $answer['data'][$i]['traffic']     = $row['traffic'];
-                    $answer['data'][$i]['login']       = $row['login'];
-                    $answer['data'][$i]['orientation'] = $row['orientation'];
-                    $answer['data'][$i]['fname']       = $row['fname'];
-                    $answer['data'][$i]['lname']       = $row['lname'];
-                    $answer['data'][$i]['birthday']    = $row['birthday'];
-                    $answer['data'][$i]['active']      = $row['active'];
-                    $answer['data'][$i]['platform']    = $row['platform'];
-                    $answer['data'][$i]['ll']          = $row['ll'];
-                    $answer['data'][$i]['chatsCount'] = $row['chats'];
-                    $answer['data'][$i]['searchable']  = $row['searchable'];
-                    $answer['data'][$i]['confirmed']   = $row['confirmed'];
-                    $answer['data'][$i]['siteId']     = $row['site_id'];
-                    $i++;
-                }
-                return $answer;
-            } else {
-                unset($STH);
-                return false;
-            }
-        }
-    }
+
     
-    function syncDc($param)
-    {
-        try {
-            $dc_synced_deleteQuery_ph = $this->db->prepare("
-                DELETE FROM 
-                    `temp_profiles` 
-                WHERE 
-                    `email` = :curr_mail
-            ;");
-            $dc_synced_deleteQuery_ph->bindParam(':curr_mail', $param);
-            $dc_synced_deleteQuery_ph->execute();
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
-            return false;
-        }
-    }
+
     
     */
 }
