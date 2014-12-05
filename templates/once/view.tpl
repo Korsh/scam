@@ -9,6 +9,7 @@ Once task #{$task_id}
     </ul>
 </div>
 <div><a class="link" id="update_activity">Update</a></div>
+<div><a class="link" id="sync_users">Sync</a></div>
 
 {include file="user_info.tpl"}
 <table id="data-sheet">
@@ -46,7 +47,7 @@ Once task #{$task_id}
                     <!--<td>email: {$chat.user.mail}</td>-->
                     {if $chat.user.screenname == '' && $chat.user.ll == 'no data' && $chat.user.distance_error == 'true'}
                     <td class="red" colspan="3">
-                     {$chat.user.id}
+                     No:{$chat.user.id}
                     </td>
                     {else}
                     <td><span class="unselectable"><b>{$chat.user.screenname}</b>, ({$chat.user.age})<br><span  class="unselectable"><b>{$chat.message.time}</b></span><br></span><a {if $chat.user.99 == 1 && ($chat.user.distance_error || $chat.message.message_error)}class="selectable red"{else}class="unselectable"{/if} target="_blank" href="https://my.ufins.com/user/edit?user_id={$chat.user.id}">{$chat.user.id}</a><br></td>

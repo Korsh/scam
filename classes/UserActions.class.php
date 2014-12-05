@@ -19,13 +19,15 @@ class UserActions
     private $proxyUrl;
     private $proxyPort;
     private $patternLocale = array(
-            'deu' => 'üäöß',
+            'deu' => 'ÜüäÖöẞß',
             'esp' => '¿¡áéíñóúÁÉÍÑÓÚ',
             'fra' => 'ÀàÂâÈèÉéÊêËëÎîÏïÔôÙùÛûŸ­ÿÆæŒœÇç',
             'nor' => 'ÆæØøÅå',
             'swe' => 'ÅåÄäÖö',
             'dnk' => 'ÆæØøÅå',
             'ita' => 'èéÈàáìíùúòó',
+            'bra' => 'ãàáéêçíñõôóúÁÉÍÑÓÚ',
+            'fin' => 'ŠšŽžÅåÄäÖö',
         );
         
     public function setAdminLoginPass($login, $pass)
@@ -324,7 +326,7 @@ class UserActions
             }
         }
         $chatsInfo['count'] = 0;
-        $pattern = array_key_exists($user['country'], $this->patternLocale) ? "/([^".$this->patternLocale[$user['country']]."A-Za-z0-9 \&\.!+-`’'\?():;,\n\s]+)/" : "/([^A-Za-z0-9 \&\.!+-`’'\?():;,\n\s]+)/";
+        $pattern = array_key_exists($user['country'], $this->patternLocale) ? "/([^".$this->patternLocale[$user['country']]."A-Za-z0-9 …\&\.!+-`’'\*\?():;,\n\s]+)/" : "/([^A-Za-z0-9 …\&\.!+-`’'\*\?():;,\n\s]+)/";
         if ($getChatsByUserIdQuery->rowCount() > 0) {
             
             $regTime = strtotime($user['register']);

@@ -104,7 +104,7 @@ class UserInfo
             $userInfo['chatsCount'] = isset($elements[0]['tr'][28]['td'][0]['a'][0]['#text']) ? $elements[0]['tr'][28]['td'][0]['a'][0]['#text'] : null;
             preg_match_all("/([0-9]+)/", $userInfo['chatsCount'], $matches);
             $userInfo['chatsCount'] = trim($matches[1][0]);
-            $userInfo['searchable']  = isset($elements[0]['tr'][36]['td'][0]['#text']) && strtolower($elements[0]['tr'][36]['td'][0]['#text']) == "yes" ? 1 : 0;
+            $userInfo['searchable']  = isset($elements[0]['tr'][41]['td'][0]['#text']) && strtolower($elements[0]['tr'][41]['td'][0]['#text']) == "yes" ? 1 : 0;
             $elements                 = $html->get(".user-block")->toArray();
             $userInfo['confirmed']   = !empty($elements[3]['h5'][0]['span'][0]['#text']) && strtolower($elements[3]['h5'][0]['span'][0]['#text']) == "confirmed" ? 1 : 0;
             curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '.com/user/edit?user_id=' . $userInfo['id']);
@@ -928,6 +928,13 @@ class UserInfo
         }
     }
     
+    function bindArray($stmt, $array)
+    {
+        foreach ($array as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
+    }
+    
     function getSitesConfig()
     {
         try {
@@ -1147,6 +1154,62 @@ class UserInfo
             }
         }
     }
+    
+    function saveTask($taskParameters)
+    {
+                    $valuesArray = array();
+            for ($i = 0; $i <count($taskParameters['config']); $i++)
+            {
+                $valuesString .= "(
+                :taskId$i,
+                :country$i,
+                :siteId$i,
+                :count$i,
+                :device$i,
+                :gender$i,
+                :referer$i,
+                :email$i,
+                :age$i
+                ), ";
+                foreach($taskParameters['config'][$i] as $key => $value) {
+                    $valueArray[$key.$i] = $value;
+                }
+            }
+            var_dump($valueArray);
+            var_dump($valueString);
+    }
+            /*
+        try {
+
+            $valueString = substr($valueString, 0, -2);
+            $saveTaskConfigQuery = $this->db->prepare("
+            INSERT INTO 
+                `task_config`(
+                    `task_id`,
+                    `country`,
+                    `site_id`,
+                    `count`,
+                    `device`,
+                    `gender`,
+                    `referer`,
+                    `email`,
+                    `age`
+                ) 
+            VALUES $valuesString 
+      ;");
+            $saveTaskConfigQuery->bindValue(':email', $userInfo);
+            
+            $saveTaskConfigQuery->execute();
+            return true;
+        }
+        catch (PDOException $e) {
+            echo $e->getMessage();
+            file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
+            return false;
+        }
+    
+    }
+    */
     /*--- not actual
     
     

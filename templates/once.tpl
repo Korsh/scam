@@ -5,11 +5,5 @@
 <a href="/once/add">Add new task</a> |
 <a href="/once/history">Tasks</a>
 <hr>
-{if $once == "add"}
-	{include file="once/add.tpl"}
-{elseif $once == "view"}
-	{include file="once/view.tpl"}
-{else}
-	{include file="once/history.tpl"}
-{/if}
+    {include file="once/$once.tpl"}
 {include file="loading.tpl"}

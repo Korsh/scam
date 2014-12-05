@@ -327,7 +327,7 @@ interval = setInterval(function() {
   if (!loadInProgress && typeof steps[testindex] == "function") {
     func = steps[testindex];
     func();
-    page.render('screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
+    //page.render('screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
