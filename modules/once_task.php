@@ -78,7 +78,7 @@ if (isset($_REQUEST['ajax'])) {
             }
         }
 
-        $ui->syncUserInfo($email);
+        $ui->syncUserInfo($email, $adminConf[0]);
         $response = $ui->findByEmail($email);
         if (!empty($response['data'])) {
             $response['request_id'] = $request_id;
@@ -140,7 +140,7 @@ if (isset($_REQUEST['ajax'])) {
         echo json_encode($user_info);
         exit;
     } elseif (isset($_REQUEST['id']) && $_REQUEST["activity"]) {
-        $ui->syncUserInfo($_REQUEST['id']);
+        $ui->syncUserInfo($_REQUEST['id'], $adminConf[0]);
         $userActions->setAdminLoginPass($admin_conf[0]['login'], $admin_conf[0]['pass']);
         $userActions->adminLogin();
         $userActions->getUserActivity($_REQUEST['id']);
@@ -150,7 +150,7 @@ if (isset($_REQUEST['ajax'])) {
         exit;
     }
     if (isset($_REQUEST['id']) && $param[2] == "activity") {
-        $ui->syncUserInfo($_REQUEST['id']);
+        $ui->syncUserInfo($_REQUEST['id'], $adminConf[0]);
         $userActions->setAdminLoginPass($admin_conf[0]['login'], $admin_conf[0]['pass']);
         $userActions->adminLogin();
         $userActions->getUserActivity($_REQUEST['id']);

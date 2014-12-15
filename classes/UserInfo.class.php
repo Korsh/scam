@@ -14,7 +14,6 @@ class UserInfo
     var $login;
     var $pass;
     var $siteConf;
-    var $config = array("dc" => "pc", "site" => "my.ufins", "loginUrl" => ".com/admin/base/login", "findUrl" => ".com/admin/user/find", "login" => "arzhanov", "pass" => "CiWacMadJej9", "type" => "phoenix");
     
     function UserInfo($DBH)
     {
@@ -27,9 +26,9 @@ class UserInfo
         );
     }
     
-    function syncUserInfo($createria)
+    function syncUserInfo($createria, $dc)
     {
-        $this->setDc($this->config);
+        $this->setDc($dc);
         $this->adminLogin();
         curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . $this->findUrl . '/?FindUserForm[user]=' . urlencode($createria));
         $findArr = array(
@@ -949,7 +948,8 @@ class UserInfo
         FROM
           `sites_config`
     WHERE `skin` != 'lgw.vanilla'
-    AND `enabled` = true;
+    AND `enabled` = true
+    AND `company` = 'PMMedia';
         ;");
         }
         catch (PDOException $e) {
