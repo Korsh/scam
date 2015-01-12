@@ -42,7 +42,6 @@ class UserInfo
         
         $html     = new nokogiri($out);
         $elements = $html->get(".grid-view")->toArray();
-
         $count  = 0;
         $idArr = array();
         for ($i = 0; $i < sizeof($elements); $i++) {
@@ -101,6 +100,7 @@ class UserInfo
             $userInfo['ll']          = isset($elements[0]['tr'][21]['td'][0]['#text']) && isset($elements[0]['tr'][22]['td'][0]['#text']) ? strtolower($elements[0]['tr'][21]['td'][0]['#text']) . "," . strtolower($elements[0]['tr'][22]['td'][0]['#text']) : null;
             
             $userInfo['chatsCount'] = isset($elements[0]['tr'][28]['td'][0]['a'][0]['#text']) ? $elements[0]['tr'][28]['td'][0]['a'][0]['#text'] : null;
+            
             preg_match_all("/([0-9]+)/", $userInfo['chatsCount'], $matches);
             $userInfo['chatsCount'] = trim($matches[1][0]);
             $userInfo['searchable']  = isset($elements[0]['tr'][41]['td'][0]['#text']) && strtolower($elements[0]['tr'][41]['td'][0]['#text']) == "yes" ? 1 : 0;
@@ -153,7 +153,6 @@ class UserInfo
                 curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($arr));
                 $out = curl_exec($this->ch);
             }
-            //var_dump($userInfo);
             $this->saveSyncUser($userInfo);
         }
         return sizeof($idArr);
@@ -391,7 +390,7 @@ class UserInfo
         }
     }
     
-    public function getUserByTaskId($taskId, $site = false, $location = false)
+    public function getUserByTaskId($taskId, $site = false, $location = false, $status = false)
     {
         try {
             if (!empty($site)) {
@@ -446,6 +445,31 @@ class UserInfo
                     AND `country` in (:location)
                     ;");
                 $getUserByTaskIdQuery->bindValue(':location', $location);
+            } elseif (!empty($status)) {
+                $getUserByTaskIdQuery = $this->db->prepare("
+                    SELECT 
+                        `sites_config`.`site_name` as site,
+                        `country`,
+                        `mail`,
+                        `gender`,
+                        `birthday`,
+                        `reg_time`,
+                        `id`,
+                        `ll`,
+                        `key`,
+                        `searchable`,
+                        `confirmed`,
+                        `platform`,
+                        `chats`
+                    FROM
+                        `profile`
+                    JOIN 
+                        `sites_config`
+                    ON
+                        `profile`.`site_id` = `sites_config`.`site_id`
+                    WHERE `task_id` = :taskId3
+                    AND `chats` = 0
+                    ;");
             } else {
                 $getUserByTaskIdQuery = $this->db->prepare("
                     SELECT 
@@ -758,7 +782,6 @@ class UserInfo
                 $siteConf['site_url']     = strtolower($jsonAnswer->{$siteConf['siteId']}->{'siteUrl'});
                 $siteConf['site_domain']  = strtolower($jsonAnswer->{$siteConf['siteId']}->{'siteDomain'});
 
-                var_dump($siteConf);
                 $new_sites = array(
                     "nastyhookups.com",
                     "ulove.com",
@@ -1175,8 +1198,29 @@ class UserInfo
                     $valueArray[$key.$i] = $value;
                 }
             }
-            var_dump($valueArray);
-            var_dump($valueString);
+    }
+    
+    function saveTmpUser($userInfo)
+    {
+        try {
+            $insertTmpUserInfoQuery = $this->db->prepare("
+        INSERT INTO 
+          `temp_profiles`(
+            email) 
+        VALUES (
+            :email
+        )
+      ;");
+            $insertTmpUserInfoQuery->bindValue(':email', $userInfo);
+            
+            $insertTmpUserInfoQuery->execute();
+            return true;
+        }
+        catch (PDOException $e) {
+            echo $e->getMessage();
+            file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
+            return false;
+        }
     }
             /*
         try {
@@ -1213,28 +1257,7 @@ class UserInfo
     /*--- not actual
     
     
-    function saveTmpUser($userInfo)
-    {
-        try {
-            $insertTmpUserInfoQuery = $this->db->prepare("
-        INSERT INTO 
-          `temp_profiles`(
-            email) 
-        VALUES (
-            :email
-        )
-      ;");
-            $insertTmpUserInfoQuery->bindValue(':email', $userInfo);
-            
-            $insertTmpUserInfoQuery->execute();
-            return true;
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
-            return false;
-        }
-    }
+
     
     function getUsersForSync($dc)
     {

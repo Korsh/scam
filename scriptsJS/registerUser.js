@@ -15,7 +15,7 @@
     var referer = (system.args[9] != undefined || system.args[9] != null) ? system.args[9] : '';
     var year = date.getFullYear()-age;
     var day = 10;//addZero(date.getDay());
-    var month = addZero(date.getMonth());
+    var month = addZero(date.getMonth()+1);
     var password = '123123';
     var alphabet = ["a","b","c","d","e","f","g","h","i","k","l","m","n","o","p","q","r","s","t","v","x","y","z"];
 

@@ -6,12 +6,13 @@ $smarty->assign('tasks_list', $tasks_list);
 if (isset($param[3])) {
     $site      = isset($_REQUEST['site']) ? $_REQUEST['site'] : false;
     $location  = isset($_REQUEST['location']) ? $_REQUEST['location'] : false;
+    $status  = isset($_REQUEST['status']) ? $_REQUEST['status'] : false;
     $day       = isset($_REQUEST['day']) ? $_REQUEST['day'] : false;
     $task_id   = $param[3];
-    $response  = $ui->getUserByTaskId($task_id, $site, $location);
+    $response  = $ui->getUserByTaskId($task_id, $site, $location, $status);
     $task_info = $ui->getTaskInfo($task_id);
     if (isset($response)) {
-        $userActions->setAdminLoginPass($admin_conf[0]['login'], $admin_conf[0]['pass']);
+        $userActions->setAdminLoginPass($adminConf[0]['login'], $adminConf[0]['pass']);
         $userActions->adminLogin();
         for ($i = 0; $i < sizeof($response); $i++) {
             if (isset($_REQUEST['activity'])) {
@@ -19,6 +20,7 @@ if (isset($param[3])) {
             }
             $response[$i] = array_merge($response[$i], $userActions->getChats($response[$i], $day));
         }
+
         $smarty->assign('users_info', $response);
     }
     if (isset($param[4]) && $param[4] == 'csv') {
@@ -62,7 +64,6 @@ if (isset($_REQUEST['ajax'])) {
             exit;
         }
         /*--proxy=".$proxy[$country]['domain'].":".$proxy[$country]['port']." --proxy-auth=andreya@ufins.com:srmlvpkk*/
-
         $script_result = trim(shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city ". $referer));
         $email = is_valid_email_address($script_result) ? $script_result : array('response' => $script_result  , 'result' => 'false');
         if(is_array($email)) {
@@ -79,6 +80,7 @@ if (isset($_REQUEST['ajax'])) {
         }
 
         $ui->syncUserInfo($email, $adminConf[0]);
+        $ui->syncUserInfo($email, $adminConf[1]);
         $response = $ui->findByEmail($email);
         if (!empty($response['data'])) {
             $response['request_id'] = $request_id;
@@ -127,21 +129,21 @@ if (isset($_REQUEST['ajax'])) {
             var_dump($registeredMails);
             mail('arzhanov@ufins.com', 'scam domains', json_encode($registeredMails));
             mail('romanf@ufins.com', 'scam domains', json_encode($registeredMails));
-    } elseif (isset($_REQUEST['activity']) && $_REQUEST['activity'] && isset($_REQUEST['user_id'])) {
-        $user_id = isset($_REQUEST['user_id']) ? $_REQUEST['user_id'] : false;
-        $userActions->setAdminLoginPass($admin_conf[0]['login'], $admin_conf[0]['pass']);
+    } elseif (isset($_REQUEST['activity']) && $_REQUEST['activity'] && isset($_REQUEST['userId'])) {
+        $userId = isset($_REQUEST['userId']) ? $_REQUEST['userId'] : false;
+        $userActions->setAdminLoginPass($adminConf[0]['login'], $adminConf[0]['pass']);
         $userActions->adminLogin();
-        $activity = $userActions->getUserActivity($_REQUEST['user_id']);
+        $activity = $userActions->getUserActivity($_REQUEST['userId']);
         echo json_encode($activity);
         exit;
-    } elseif (isset($_REQUEST['get_user_info']) && isset($_REQUEST['user_id'])) {
-        $user_id   = isset($_REQUEST['user_id']) ? $_REQUEST['user_id'] : false;
-        $user_info = $ui->findById($user_id);
+    } elseif (isset($_REQUEST['get_user_info']) && isset($_REQUEST['userId'])) {
+        $userId   = isset($_REQUEST['userId']) ? $_REQUEST['userId'] : false;
+        $user_info = $ui->findById($userId);
         echo json_encode($user_info);
         exit;
     } elseif (isset($_REQUEST['id']) && $_REQUEST["activity"]) {
         $ui->syncUserInfo($_REQUEST['id'], $adminConf[0]);
-        $userActions->setAdminLoginPass($admin_conf[0]['login'], $admin_conf[0]['pass']);
+        $userActions->setAdminLoginPass($adminConf[0]['login'], $adminConf[0]['pass']);
         $userActions->adminLogin();
         $userActions->getUserActivity($_REQUEST['id']);
         echo '{result:true}';
@@ -151,7 +153,7 @@ if (isset($_REQUEST['ajax'])) {
     }
     if (isset($_REQUEST['id']) && $param[2] == "activity") {
         $ui->syncUserInfo($_REQUEST['id'], $adminConf[0]);
-        $userActions->setAdminLoginPass($admin_conf[0]['login'], $admin_conf[0]['pass']);
+        $userActions->setAdminLoginPass($adminConf[0]['login'], $adminConf[0]['pass']);
         $userActions->adminLogin();
         $userActions->getUserActivity($_REQUEST['id']);
         exit;

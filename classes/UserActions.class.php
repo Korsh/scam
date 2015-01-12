@@ -206,7 +206,7 @@ class UserActions
         curl_setopt($this->adminCh, CURLOPT_VERBOSE, 1);
         curl_setopt($this->adminCh, CURLOPT_POST, true);
         curl_setopt($this->adminCh, CURLOPT_POSTFIELDS, http_build_query($postArr));
-        curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 0);
         curl_exec($this->adminCh);
     }
     
@@ -252,7 +252,6 @@ class UserActions
             }
             
         }
-        
         $this->saveChats($userId, $chatsInfo);
         return $chatsInfo;
     }
@@ -567,7 +566,6 @@ class UserActions
             $userInfo['address_ll'] = null;
             $userInfo['ll']         = "no data";
         }
-
         return $userInfo;
     }
     

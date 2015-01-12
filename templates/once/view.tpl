@@ -31,7 +31,8 @@ Once task #{$task_id}
             <span class="unselectable"><a target="_blank" href="https://my.ufins.com/user/find?user_id={$user.id}">admin</a><br>
             {$user.platform}
             <br>
-            Message: {$user.chats|@sizeof} / {$user.chats_count}</span><div>
+            
+            Message: {if $user.chats|@sizeof == 1 && $user.chats[0].message == 'empty'}0{else}{$user.chats|@sizeof}{/if} / {$user.chatsCount}</span><div>
             <img src="http://maps.googleapis.com/maps/api/staticmap?center={$user.ll}&zoom=2&size=200x200&sensor=true&markers=color:blue%7C{$user.ll}"></div>
         </td>
         <td>
