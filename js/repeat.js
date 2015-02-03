@@ -113,6 +113,8 @@ var old_value;
         task_id = $('#task_id').val();
         time_interval_minute = $('#time_interval_minute').val();
         time_interval_hour = $('#time_interval_hour').val();
+        report_interval_minute = $('#report_interval_minute').val();
+        report_interval_hour = $('#report_interval_hour').val();
         config = [];
         trs = $('.main_table > tbody').children();
         for(i=0; i<trs.length; i++)
@@ -120,7 +122,7 @@ var old_value;
             tr        = trs[i];
             k         = new Object();
             k.site    = tr.children[0].textContent;
-            k.counry  = tr.children[1].textContent;
+            k.country  = tr.children[1].textContent;
             k.email   = tr.children[2].textContent;
             k.gender  = tr.children[3].textContent;
             k.age     = tr.children[4].textContent;
@@ -135,7 +137,7 @@ var old_value;
         {
             if($('.schelude_day')[i].checked)
             {
-                days.push(i+1);
+                days.push($('.schelude_day')[i].value);
             }
         }
         if(days.length > 0 && config.length > 0)
@@ -144,12 +146,14 @@ var old_value;
                 "/repeat/",
                 {
                     ajax                 : true,
-                    save_task            : true,
+                    saveTask            : true,
                     config               : config,
-                    task_id              : task_id,
+                    taskId              : task_id,
                     days                 : days,
-                    time_interval_minute : time_interval_minute,
-                    time_interval_hour   : time_interval_hour
+                    timeIntervalMinute : time_interval_minute,
+                    timeIntervalHour   : time_interval_hour,
+                    reportIntervalMinute : report_interval_minute,
+                    reportIntervalHour   : report_interval_hour
                 },
                 function(response){
                     answer = JSON.parse(response);

@@ -44,10 +44,11 @@ class UserInfo
         $elements = $html->get(".grid-view")->toArray();
         $count  = 0;
         $idArr = array();
+        $userInfo = array();
         for ($i = 0; $i < sizeof($elements); $i++) {
             if (isset($elements[$i]['table'][0]['tbody'][0]['tr']['td'])) {
-                if (isset($elements[$i]['table'][0]['tbody'][0]['tr']['td'][3])) {
-                    $autologinLink = $elements[$i]['table'][0]['tbody'][0]['tr']['td'][3]['a']['href'];
+                if (isset($elements[$i]['table'][0]['tbody'][0]['tr']['td'][4])) {
+                    $autologinLink = $elements[$i]['table'][0]['tbody'][0]['tr']['td'][4]['a']['href'];
                     preg_match_all("/[\S]+userId=([0-9a-z]+)/i", $autologinLink, $matches);
                     if ($matches[1][0] != '') {
                         $idArr[] = trim($matches[1][0]);
@@ -55,8 +56,8 @@ class UserInfo
                 }
             } else {
                 for ($y = 0; $y < sizeof($elements[$i]['table'][0]['tbody'][0]['tr']); $y++) {
-                    if (isset($elements[$i]['table'][0]['tbody'][0]['tr'][$y]['td'][3])) {
-                        $autologinLink = $elements[$i]['table'][0]['tbody'][0]['tr'][$y]['td'][3]['a']['href'];
+                    if (isset($elements[$i]['table'][0]['tbody'][0]['tr'][$y]['td'][4])) {
+                        $autologinLink = $elements[$i]['table'][0]['tbody'][0]['tr'][$y]['td'][4]['a']['href'];
                         preg_match_all("/[\S]+userId=([0-9a-z]+)/i", $autologinLink, $matches);
                         if (!empty($matches[1][0]) && $matches[1][0] != '') {
                             $idArr[] = trim($matches[1][0]);
@@ -66,47 +67,41 @@ class UserInfo
             }
             
         }
-
         for ($i = 0; $i < sizeof($idArr); $i++) {
-            curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '.com/user/find?user_id=' . $idArr[$i]);
-            $findArr = array(
-                "YII_CSRF_TOKEN" => "",
-                "FindUserForm" => array(
-                    "user" => $idArr[$i]
-                )
-            );
+            curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . $this->findUrl . '?user_id=' . $idArr[$i]);
             
             curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
             $out                      = curl_exec($this->ch);
             $html                     = new nokogiri($out);
             $elements                 = $html->get("#yw1")->toArray();
             //echo '<pre>'.print_r($elements, true).'</pre>';
+            //exit;
             $userInfo['id']          = isset($elements[0]['tr'][0]['td'][0]['#text']) ? strtolower($elements[0]['tr'][0]['td'][0]['#text']) : null;
             $userInfo['mail']        = isset($elements[0]['tr'][2]['td'][0]['#text']) ? strtolower($elements[0]['tr'][2]['td'][0]['#text']) : null;
             $userInfo['login']       = isset($elements[0]['tr'][4]['td'][0]['#text']) ? strtolower($elements[0]['tr'][4]['td'][0]['#text']) : null;
             $userInfo['password']    = isset($elements[0]['tr'][5]['td'][0]['#text']) ? $elements[0]['tr'][5]['td'][0]['#text'] : null;
             $userInfo['key']         = isset($elements[0]['tr'][6]['td'][0]['#text']) ? strtolower($elements[0]['tr'][6]['td'][0]['#text']) : null;
-            $userInfo['siteId']     = isset($elements[0]['tr'][7]['td'][0]['#text']) ? strtolower($elements[0]['tr'][7]['td'][0]['#text']) : null;
+            $userInfo['siteId']      = isset($elements[0]['tr'][7]['td'][0]['#text']) ? strtolower($elements[0]['tr'][7]['td'][0]['#text']) : null;
             $userInfo['gender']      = isset($elements[0]['tr'][9]['td'][0]['#text']) ? strtolower($elements[0]['tr'][9]['td'][0]['#text']) : null;
             $userInfo['orientation'] = isset($elements[0]['tr'][10]['td'][0]['#text']) ? strtolower($elements[0]['tr'][10]['td'][0]['#text']) : null;
             $userInfo['fname']       = isset($elements[0]['tr'][11]['td'][0]['#text']) ? strtolower($elements[0]['tr'][11]['td'][0]['#text']) : null;
             $userInfo['lname']       = isset($elements[0]['tr'][12]['td'][0]['#text']) ? strtolower($elements[0]['tr'][12]['td'][0]['#text']) : null;
             $userInfo['country']     = isset($elements[0]['tr'][13]['td'][0]['#text']) ? strtolower($elements[0]['tr'][13]['td'][0]['#text']) : null;
             $userInfo['birthday']    = isset($elements[0]['tr'][14]['td'][0]['#text']) ? strtolower($elements[0]['tr'][14]['td'][0]['#text']) : null;
-            $userInfo['regTime']    = isset($elements[0]['tr'][20]['td'][0]['#text']) ? $elements[0]['tr'][20]['td'][0]['#text'] : null;
+            $userInfo['regTime']     = isset($elements[0]['tr'][20]['td'][0]['#text']) ? $elements[0]['tr'][20]['td'][0]['#text'] : null;
             $userInfo['active']      = isset($elements[0]['tr'][26]['td'][0]['#text']) ? strtolower($elements[0]['tr'][26]['td'][0]['#text']) : null;
             $userInfo['traffic']     = isset($elements[0]['tr'][34]['td'][0]['#text']) || strtolower($elements[0]['tr'][34]['td'][0]['#text']) != 'undefined' ? strtolower($elements[0]['tr'][34]['td'][0]['#text']) : strtolower($elements[0]['tr'][35]['td'][0]['#text']);
             $userInfo['platform']    = isset($elements[0]['tr'][36]['td'][0]['#text']) ? strtolower($elements[0]['tr'][36]['td'][0]['#text']) : null;
             $userInfo['ll']          = isset($elements[0]['tr'][21]['td'][0]['#text']) && isset($elements[0]['tr'][22]['td'][0]['#text']) ? strtolower($elements[0]['tr'][21]['td'][0]['#text']) . "," . strtolower($elements[0]['tr'][22]['td'][0]['#text']) : null;
             
-            $userInfo['chatsCount'] = isset($elements[0]['tr'][28]['td'][0]['a'][0]['#text']) ? $elements[0]['tr'][28]['td'][0]['a'][0]['#text'] : null;
+            $userInfo['chatsCount']  = isset($elements[0]['tr'][28]['td'][0]['a'][0]['#text']) ? $elements[0]['tr'][28]['td'][0]['a'][0]['#text'] : null;
             
             preg_match_all("/([0-9]+)/", $userInfo['chatsCount'], $matches);
-            $userInfo['chatsCount'] = trim($matches[1][0]);
+            $userInfo['chatsCount']  = trim($matches[1][0]);
             $userInfo['searchable']  = isset($elements[0]['tr'][41]['td'][0]['#text']) && strtolower($elements[0]['tr'][41]['td'][0]['#text']) == "yes" ? 1 : 0;
-            $elements                 = $html->get(".user-block")->toArray();
+            $elements                = $html->get(".user-block")->toArray();
             $userInfo['confirmed']   = !empty($elements[3]['h5'][0]['span'][0]['#text']) && strtolower($elements[3]['h5'][0]['span'][0]['#text']) == "confirmed" ? 1 : 0;
-            curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '.com/user/edit?user_id=' . $userInfo['id']);
+            curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '/user/edit?user_id=' . $userInfo['id']);
             curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
             $out      = curl_exec($this->ch);
             $html     = new nokogiri($out);
@@ -145,17 +140,18 @@ class UserInfo
                 }
                 $arr['UserAdminForm[location]'] = '';
                 $arr['UserAdminForm[country]']  = '';
-                curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '.com/user/edit?user_id=' . $userInfo['id']);
+                error_log($userInfo['id'].'-'.$userInfo['mail'].'-'.$createria);
+                curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '/user/edit?user_id=' . $userInfo['id']);
                 curl_setopt($this->ch, CURLOPT_POST, true);
                 curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($this->ch, REFERER, "https://my.ufins.com/user/edit?user_id=3dc38936fd1b11e3a082d4bed9a94a8f");
+                curl_setopt($this->ch, CURLOPT_REFERER, "https://" . $this->mainSite . '/user/edit?user_id=' . $userInfo['id']);
                 
                 curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($arr));
                 $out = curl_exec($this->ch);
             }
             $this->saveSyncUser($userInfo);
         }
-        return sizeof($idArr);
+        return $userInfo;
     }
     
     private function setDc($config)
@@ -213,7 +209,7 @@ class UserInfo
             $i = 0;
             while ($row = $getSetTestUsersQuery->fetch()) {
                 $users[$i]['id'] = $row['id'];
-                curl_setopt($this->ch, CURLOPT_URL, "https://my.ufins.com/user/markTester?userId=" . $users[$i]['id']);
+                curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . "/user/markTester?userId=" . $users[$i]['id']);
                 curl_exec($this->ch);
             }
             return $users;
@@ -446,31 +442,58 @@ class UserInfo
                     ;");
                 $getUserByTaskIdQuery->bindValue(':location', $location);
             } elseif (!empty($status)) {
-                $getUserByTaskIdQuery = $this->db->prepare("
-                    SELECT 
-                        `sites_config`.`site_name` as site,
-                        `country`,
-                        `mail`,
-                        `gender`,
-                        `birthday`,
-                        `reg_time`,
-                        `id`,
-                        `ll`,
-                        `key`,
-                        `searchable`,
-                        `confirmed`,
-                        `platform`,
-                        `chats`
-                    FROM
-                        `profile`
-                    JOIN 
-                        `sites_config`
-                    ON
-                        `profile`.`site_id` = `sites_config`.`site_id`
-                    WHERE `task_id` = :taskId3
-                    AND `chats` = 0
-                    ;");
-            } else {
+                if($status == 'null') {
+                    $getUserByTaskIdQuery = $this->db->prepare("
+                        SELECT 
+                            `sites_config`.`site_name` as site,
+                            `country`,
+                            `mail`,
+                            `gender`,
+                            `birthday`,
+                            `reg_time`,
+                            `id`,
+                            `ll`,
+                            `key`,
+                            `searchable`,
+                            `confirmed`,
+                            `platform`,
+                            `chats`
+                        FROM
+                            `profile`
+                        JOIN 
+                            `sites_config`
+                        ON
+                            `profile`.`site_id` = `sites_config`.`site_id`
+                        WHERE `task_id` = :taskId3
+                        AND `chats` = 0
+                        ;");
+                } elseif ($status != 'null') {
+                    $getUserByTaskIdQuery = $this->db->prepare("
+                        SELECT 
+                            `sites_config`.`site_name` as site,
+                            `country`,
+                            `mail`,
+                            `gender`,
+                            `birthday`,
+                            `reg_time`,
+                            `id`,
+                            `ll`,
+                            `key`,
+                            `searchable`,
+                            `confirmed`,
+                            `platform`,
+                            `chats`
+                        FROM
+                            `profile`
+                        JOIN 
+                            `sites_config`
+                        ON
+                            `profile`.`site_id` = `sites_config`.`site_id`
+                        WHERE `task_id` = :taskId3
+                        AND `chats` != 0
+                        ;");
+                }
+            } else {            
                 $getUserByTaskIdQuery = $this->db->prepare("
                     SELECT 
                         `sites_config`.`site_name` as site,
@@ -743,7 +766,7 @@ class UserInfo
         
         $this->setDc($conf);
         $this->adminLogin();
-        curl_setopt($this->ch, CURLOPT_URL, "https://my.ufins.com/user/sites");
+        curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . "/user/sites");
         curl_setopt($this->ch, CURLOPT_COOKIEJAR, 'cookie.txt');
         curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'cookie.txt');
         curl_setopt($this->ch, CURLOPT_VERBOSE, 0);
@@ -758,7 +781,7 @@ class UserInfo
             for ($y = 0; $y < sizeof($elements[$i]['table'][0]['tbody'][0]['tr']); $y++) {
                 $siteConf['siteId'] = $elements[$i]['table'][0]['tbody'][0]['tr'][$y]['td'][2]['#text'];
 
-                curl_setopt($this->ch, CURLOPT_URL, 'https://my.ufins.com/admin/user/sites/view/' . $siteConf['siteId']);
+                curl_setopt($this->ch, CURLOPT_URL, 'https://' . $this->mainSite . '/admin/user/sites/view/' . $siteConf['siteId']);
                 curl_setopt($this->ch, CURLOPT_COOKIEJAR, 'cookie.txt');
                 curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'cookie.txt');
                 curl_setopt($this->ch, CURLOPT_VERBOSE, 0);
@@ -950,24 +973,18 @@ class UserInfo
         }
     }
     
-    function bindArray($stmt, $array)
-    {
-        foreach ($array as $key => $value) {
-            $stmt->bindValue(':' . $key, $value);
-        }
-    }
-    
     function getSitesConfig()
     {
         try {
             $getSitesConfigQuery = $this->db->query("
         SELECT 
-          `site_name`,
-      `site_id`,
-      `site_url`,
-      `site_domain`,
-        `company_name`,
-        `locale`
+            `site_name`,
+            `site_id`,
+            `site_url`,
+            `site_domain`,
+            `company_name`,
+            `locale`,
+            `dictionary_id`
         FROM
           `sites_config`
     WHERE `skin` != 'lgw.vanilla'
@@ -987,6 +1004,7 @@ class UserInfo
                 $sitesConfig[$row['site_id']]['domain']       = $row['site_domain'];
                 $sitesConfig[$row['site_id']]['company_name'] = $row['company_name'];
                 $sitesConfig[$row['site_id']]['locale']       = $row['locale'];
+                $sitesConfig[$row['site_id']]['dictionaryId']       = $row['dictionary_id'];
             }
             
             return $sitesConfig;
@@ -1176,28 +1194,6 @@ class UserInfo
                 return false;
             }
         }
-    }
-    
-    function saveTask($taskParameters)
-    {
-                    $valuesArray = array();
-            for ($i = 0; $i <count($taskParameters['config']); $i++)
-            {
-                $valuesString .= "(
-                :taskId$i,
-                :country$i,
-                :siteId$i,
-                :count$i,
-                :device$i,
-                :gender$i,
-                :referer$i,
-                :email$i,
-                :age$i
-                ), ";
-                foreach($taskParameters['config'][$i] as $key => $value) {
-                    $valueArray[$key.$i] = $value;
-                }
-            }
     }
     
     function saveTmpUser($userInfo)

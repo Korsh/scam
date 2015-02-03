@@ -64,21 +64,9 @@ switch (device) {
     console.log(msg);
     };
      
-/*page.onError = function(msg, trace) {
+phantom.onError = function(msg, trace) {
 
-  var msgStack = [msg];
-
-  if (trace && trace.length) {
-    msgStack.push('TRACE:');
-    trace.forEach(function(t) {
-
-      //msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
-    });
-  }
-
-  console.error(msgStack.join('\n'));
-  return;
-};*/
+};
     page.onLoadStarted = function() {
         loadInProgress = true;
     };
@@ -157,7 +145,7 @@ switch (device) {
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom) {
+            page.evaluate(function(phantom, email) {
                 if(document.location.pathname == '/verify/cardAuthorization')
                 {
                     card_number = 4012888888881881;
@@ -226,7 +214,9 @@ switch (device) {
                     document.getElementById('CardAuthorizationModel_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = card_year;
                     $('#CardAuthorizationModel_securityNumber').val(cvv);
                     $('#AgeVerificationPageModel_terms').click();
+                    console.log(email);
                     $('#avp').submit();
+                    exit;
                 } else if(document.location.pathname == '/verify/ageVerificationPage')
                 {
                     card_number = 4012888888881881;
@@ -294,9 +284,11 @@ switch (device) {
                     document.getElementById('AgeVerificationPageModel_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = card_year;
                     $('#AgeVerificationPageModel_securityNumber').val(cvv);
                     $('#AgeVerificationPageModel_terms').click();
+                    console.log(email);
                     $('#avp').submit();
+                    exit;
                 }
-            }, phantom);
+            }, phantom, email);
         },
 /*        function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");

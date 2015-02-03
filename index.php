@@ -77,6 +77,13 @@ if ($param[1] == "repeat") {
             $smarty->assign('once', "history");
             break;
     }
+} else if ($param[1] == "monitor") {
+    $display_page = 'monitor.tpl';
+    switch ($param[2]) {
+        case "showStat":
+            require_once(MODULE_DIR . 'realActivity.php');
+            break;
+    }
 } else {
     switch ($param[1]) {
         case "register":

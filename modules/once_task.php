@@ -47,7 +47,6 @@ if (isset($_REQUEST['ajax'])) {
         $proxy[$country]['zipCode'] = str_replace(" ", "+", $proxy[$country]['zipCode']);
         $proxy[$country]['cityName'] = str_replace(" ", "+", $proxy[$country]['cityName']);
         $city = ($country == 'USA' || $country == 'USA2') ? $proxy[$country]['zipCode'] : ucfirst(strtolower($proxy[$country]['cityName'])).',+'.$proxy[$country]['zipCode'];
-
         $script = "scriptsJS/registerUser.js";
         $debug = false;
         if(isset($_GET['debug']) || $debug) {
@@ -78,7 +77,6 @@ if (isset($_REQUEST['ajax'])) {
                 exit;
             }
         }
-
         $ui->syncUserInfo($email, $adminConf[0]);
         $ui->syncUserInfo($email, $adminConf[1]);
         $response = $ui->findByEmail($email);
