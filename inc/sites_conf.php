@@ -1,11 +1,30 @@
 <?php
+
 $sites = $ui->getSitesConfig();
 function cmp($a, $b)
 {
     return strcmp($a["site_name"], $b["site_name"]);
 }
 usort($sites, "cmp");
-
+$sites['locales'] = array(
+    "AUS",
+    "BRA",
+    "CAN",
+    "DEU",
+    "DNK",
+    "ESP",
+    "FIN",
+    "FRA",
+    "GBR",
+    "IRL",
+    "ITA",
+    "NOR",
+    "NZL",
+    "SWE",
+    "USA",
+    "BEL",
+    "CZE"
+);
 function findDictionaryIdInSitesConfig($siteToFind, $siteConfig)
 {
     $dictionaryId = false;

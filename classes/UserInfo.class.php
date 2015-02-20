@@ -82,7 +82,7 @@ class UserInfo
             $userInfo['password']    = isset($elements[0]['tr'][5]['td'][0]['#text']) ? $elements[0]['tr'][5]['td'][0]['#text'] : null;
             $userInfo['key']         = isset($elements[0]['tr'][6]['td'][0]['#text']) ? strtolower($elements[0]['tr'][6]['td'][0]['#text']) : null;
             $userInfo['siteId']      = isset($elements[0]['tr'][7]['td'][0]['#text']) ? strtolower($elements[0]['tr'][7]['td'][0]['#text']) : null;
-            $userInfo['gender']      = isset($elements[0]['tr'][9]['td'][0]['#text']) ? strtolower($elements[0]['tr'][9]['td'][0]['#text']) : null;
+            $userInfo['gender']      = isset($elements[0]['tr'][9]['td'][0]['#text']) ? strtolower($elements[0]['tr'][9]['td'][0]['#text']) : 'male';
             $userInfo['orientation'] = isset($elements[0]['tr'][10]['td'][0]['#text']) ? strtolower($elements[0]['tr'][10]['td'][0]['#text']) : null;
             $userInfo['fname']       = isset($elements[0]['tr'][11]['td'][0]['#text']) ? strtolower($elements[0]['tr'][11]['td'][0]['#text']) : null;
             $userInfo['lname']       = isset($elements[0]['tr'][12]['td'][0]['#text']) ? strtolower($elements[0]['tr'][12]['td'][0]['#text']) : null;
@@ -871,6 +871,7 @@ class UserInfo
     
     function saveSyncUser($userInfo)
     {
+
         if (isset($userInfo)) {
             if ($userInfo['mail'] != 'adghcvnhtg@outlook.com' || $userInfo['mail'] != '') {
                 try {
@@ -1001,6 +1002,7 @@ class UserInfo
             while ($row = $getSitesConfigQuery->fetch()) {
                 $sitesConfig[$row['site_id']]['live']         = $row['site_url'];
                 $sitesConfig[$row['site_id']]['site_name']    = $row['site_name'];
+                $sitesConfig[$row['site_id']]['site_id']    = $row['site_id'];
                 $sitesConfig[$row['site_id']]['domain']       = $row['site_domain'];
                 $sitesConfig[$row['site_id']]['company_name'] = $row['company_name'];
                 $sitesConfig[$row['site_id']]['locale']       = $row['locale'];

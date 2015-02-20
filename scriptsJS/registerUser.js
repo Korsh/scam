@@ -13,6 +13,9 @@
     var city = system.args[8];
     city = city.replace(/\+/g, ' ');
     var referer = (system.args[9] != undefined || system.args[9] != null) ? system.args[9] : '';
+    var debug = system.args[10] != null ? system.args[10] : false;
+    console.log(system.args[10]);
+    console.log(debug);
     var year = date.getFullYear()-age;
     var day = 10;//addZero(date.getDay());
     var month = addZero(date.getMonth()+1);
@@ -117,29 +120,45 @@ phantom.onError = function(msg, trace) {
         },*/
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom, gender, orientation, year, month, day, email, password, city, screenname) {
+            page.evaluate(function(phantom, gender, orientation, year, month, day, email, password, city, screenname, debug) {
                 $('.btn--popup').click();
-                $('#UserForm_gender').val(gender);
-                $('#UserForm_sexual_orientation').val(orientation);
-                $('#UserForm_year').val(year).change();
-                $('#UserForm_month').val(month).change();
-                $('#UserForm_day').val(day).change();
-                $('#UserForm_login').val(screenname).change();
+                console.log(debug);
+                if(debug) console.log("$('.btn--popup').click();");
+                $('#UserForm_gender').val(gender).removeAttr('disabled');
+                $('#formRegGender').val(gender).removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_gender').val("+gender+").removeAttr('disabled');");
+                $('#UserForm_sexual_orientation').val(orientation).removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_sexual_orientation').val("+orientation+").removeAttr('disabled');");
+                $('#UserForm_year').val(year).change().removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_year').val("+year+").change().removeAttr('disabled');");
+                $('#UserForm_month').val(month).change().removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_month').val("+month+").change().removeAttr('disabled');");
+                $('#UserForm_day').val(day).change().removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_day').val("+day+").change().removeAttr('disabled');");
+                $('#UserForm_login').val(screenname).change().removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_login').val("+screenname+").change().removeAttr('disabled');");
                 postCode = $('#UserForm_location').val();
+                if(debug) console.log("postCode = $('#UserForm_location').val();");
                 postCode = postCode.replace(/ /g, '');
+                if(debug) console.log("postCode = postCode.replace(/ /g, '');");
                 if(postCode == '') {
-                    $('#UserForm_location').val(city);
+                    $('#UserForm_location').val(city).removeAttr('disabled');
+                    if(debug) console.log("$('#UserForm_location').val("+city+").removeAttr('disabled');");
                 }
-                $('#UserForm_email').val(email);
-                $('#UserForm_just_email').val(email);
-                $('#UserForm_password').val(password);
-            }, phantom, gender, orientation, year, month, day, email, password, city, screenname);
+                $('#UserForm_email').val(email).removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_email').val("+email+").removeAttr('disabled');");
+                $('#UserForm_just_email').val(email).removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_just_email').val("+email+").removeAttr('disabled');");
+                $('#UserForm_password').val(password).removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_password').val("+password+").removeAttr('disabled');");
+            }, phantom, gender, orientation, year, month, day, email, password, city, screenname, debug);
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom) {
                 $('#register-form').submit();  
                 $('#register_frm').submit();
+                $('#reg-form').submit();                
                 return;
             }, phantom);
         },
@@ -319,7 +338,7 @@ interval = setInterval(function() {
   if (!loadInProgress && typeof steps[testindex] == "function") {
     func = steps[testindex];
     func();
-    //page.render('screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
+    page.render('screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
     testindex++;
   }
   if (typeof steps[testindex] != "function") {

@@ -39,7 +39,7 @@ class RealActivity
         $this->setDc($dc);
         $this->adminLogin();
         
-        $platform = $platform == "webSite" ? 1 : 2;
+        $platform = $platform == "webSite" ? array(1) : array(2);
         $dateFrom     = !empty($dateFrom) ? $dateFrom : date('Y-m-d',strtotime(date('Y-m-d') . "-1 days"));
         $dateTo       = !empty($dateTo) ? $dateTo : date('Y-m-d');
         $postArr = array(
@@ -78,6 +78,7 @@ class RealActivity
         curl_setopt($this->ch, CURLOPT_POST, true);
         curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($postArr));
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+        //echo '<pre>'.print_r(http_build_query($postArr), true).'</pre>';
         $out = curl_exec($this->ch);
         $html = new nokogiri($out);
         $elements = $html->get("#yw1")->toArray();

@@ -103,6 +103,10 @@ if ($param[1] == "repeat") {
         case "test":
             require_once(SCRIPT_DIR . 'testUser.php');
             break;
+        case "sites":
+            $display_page = 'sites_config.tpl';
+            require_once(MODULE_DIR . 'sites_config.php');
+            break;
         default:
             $display_page = 'index.tpl';
             break;
