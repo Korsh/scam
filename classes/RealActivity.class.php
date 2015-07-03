@@ -106,7 +106,7 @@ class RealActivity
         curl_setopt($this->b2bCh, CURLOPT_URL, $this->b2bSite.$this->b2bFindUrl);
         $postArr = array(
             "ids" => $userActivityString,
-            "dc_num" => 5,
+            "dc_num" => 4,
             "action" => "Show user stat"
         );
         curl_setopt($this->b2bCh, CURLOPT_VERBOSE, 1);
@@ -122,6 +122,7 @@ class RealActivity
         unset($elements[0]['table'][1]['tr']['td'][0]['#text']);
         $userInfoListNotParsed     = $elements[0]['table'][1]['tr']['td'][0]['div'];
         $userActivityListNotParsed = $elements[0]['table'][1]['tr']['td'][0]['table'];
+
         foreach($userInfoListNotParsed as $infoKey => $infoValue) {
             $userInfoParse = explode(' ', $infoValue['#text'][0]);
             $userActivity[$userInfoParse[3]]['gender'] = $userInfoParse[7];
@@ -131,11 +132,17 @@ class RealActivity
             foreach($userActivityListNotParsed[$infoKey]['tr'] as $activityKey => $activityValue) {
                 if($activityKey == 0) continue;
                 $td = !empty($userActivityListNotParsed[$infoKey]['tr'][$activityKey]['td']) ? $userActivityListNotParsed[$infoKey]['tr'][$activityKey]['td']: $userActivityListNotParsed[$infoKey]['tr'][$activityKey]['th'];
+                echo $infoKey;
+                    echo '<pre>'.print_r($userInfoParse, true).'</pre>';
+                    echo '<pre>'.print_r($td, true).'</pre>';
+                    echo '<pre>'.print_r($userInfoListNotParsed, true).'</pre>';
+                    
                 if(!empty($td['#text']) && $td['#text'] == 'Nothing found') {
                     $userActivity[$userInfoParse[3]]['messages'] = array(
                         0 => false,
                     );
                 } else {
+
                     $userActivity[$userInfoParse[3]]['messages'][] = array(
                         'screenname'    => $td[1]['#text'],
                         'group'         => $td[2]['#text'],
@@ -150,6 +157,7 @@ class RealActivity
                 }
             }
         }
+        echo '<pre>'.print_r($userActivity, true).'</pre>';
         return $userActivity;
     }
     
@@ -195,7 +203,8 @@ class RealActivity
         curl_setopt($this->b2bCh, CURLOPT_URL, $this->b2bSite.$this->b2bLoginUrl);
         curl_setopt($this->b2bCh, CURLOPT_USERPWD, $this->b2bHttpLogin . ":" . $this->b2bHttpPass);
         curl_setopt($this->b2bCh, CURLOPT_POST, true);
-        curl_setopt($this->b2bCh, CURLOPT_POSTFIELDS, "guid=" . $this->b2bLogin . "&pwd=" . $this->b2bPass . "&login=Login&token=" . $token);
+        //echo "guid=" . $this->b2bLogin . "&pwd=" . $this->b2bPass . "&login=Login&token=" . $token;
+        curl_setopt($this->b2bCh, CURLOPT_POSTFIELDS, "guid=" . $this->b2bLogin . "&pwd=" . urlencode($this->b2bPass) . "&login=Login&token=" . $token);
         curl_setopt($this->b2bCh, CURLOPT_VERBOSE, 1);
         curl_setopt($this->b2bCh, CURLOPT_RETURNTRANSFER, 0);
         $out = curl_exec($this->b2bCh);

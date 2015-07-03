@@ -20,7 +20,7 @@ $dateTo   = isset($_REQUEST['dateTo']) ? $_REQUEST['dateTo'] : date('Y-m-d');
 if(!empty($site) && !empty($country) && !empty($platform) && !empty($gender) && !empty($dateFrom) && !empty($dateTo)) {
     $userInfo     = $realActivityClass->getRealUsersIds($adminConf[0], $site, $country, $platform, $gender, $dateFrom, $dateTo);
     $userActivity = $realActivityClass->checkActivity($userInfo, $b2bAdminConf);
-    
+    echo '<pre>'.print_r($userActivity, true).'</pre>';
     if(!empty($_REQUEST['ajax'])) {
         echo json_encode($userActivity);
     } else {

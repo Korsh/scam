@@ -1,4 +1,6 @@
 // Get activity from admin area
+    var date = new Date();
+    var uniqueAdding = date.getTime();
     var system = require('system');
     var autologin = system.args[1];
 
@@ -25,10 +27,12 @@
 
 interval = setInterval(function() {
   if (!loadInProgress && typeof steps[testindex] == "function") {
-    steps[testindex]();
+    func = steps[testindex];
+    func();
+    page.render('../screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
     phantom.exit();
   }
-}, 800);
+}, 5000);

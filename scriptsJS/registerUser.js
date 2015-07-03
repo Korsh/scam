@@ -235,7 +235,7 @@ phantom.onError = function(msg, trace) {
                     $('#AgeVerificationPageModel_terms').click();
                     console.log(email);
                     $('#avp').submit();
-                    exit;
+                    phantom.exit();
                 } else if(document.location.pathname == '/verify/ageVerificationPage')
                 {
                     card_number = 4012888888881881;
@@ -305,7 +305,7 @@ phantom.onError = function(msg, trace) {
                     $('#AgeVerificationPageModel_terms').click();
                     console.log(email);
                     $('#avp').submit();
-                    exit;
+                    phantom.exit();
                 }
             }, phantom, email);
         },
@@ -328,6 +328,14 @@ phantom.onError = function(msg, trace) {
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom) {
+                if(document.location.pathname == '/pay/liveCamCredits') {
+                    $('#liveCamCreditForm').submit();
+                }
+            }, phantom);
+        },
+        function() {
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom, email) {
                 console.log(email);
             }, phantom, email);
@@ -338,7 +346,7 @@ interval = setInterval(function() {
   if (!loadInProgress && typeof steps[testindex] == "function") {
     func = steps[testindex];
     func();
-    page.render('screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
+    page.render('../screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
     testindex++;
   }
   if (typeof steps[testindex] != "function") {

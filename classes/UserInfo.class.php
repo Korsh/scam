@@ -81,18 +81,18 @@ class UserInfo
             $userInfo['login']       = isset($elements[0]['tr'][4]['td'][0]['#text']) ? strtolower($elements[0]['tr'][4]['td'][0]['#text']) : null;
             $userInfo['password']    = isset($elements[0]['tr'][5]['td'][0]['#text']) ? $elements[0]['tr'][5]['td'][0]['#text'] : null;
             $userInfo['key']         = isset($elements[0]['tr'][6]['td'][0]['#text']) ? strtolower($elements[0]['tr'][6]['td'][0]['#text']) : null;
-            $userInfo['siteId']      = isset($elements[0]['tr'][7]['td'][0]['#text']) ? strtolower($elements[0]['tr'][7]['td'][0]['#text']) : null;
-            $userInfo['gender']      = isset($elements[0]['tr'][9]['td'][0]['#text']) ? strtolower($elements[0]['tr'][9]['td'][0]['#text']) : 'male';
-            $userInfo['orientation'] = isset($elements[0]['tr'][10]['td'][0]['#text']) ? strtolower($elements[0]['tr'][10]['td'][0]['#text']) : null;
-            $userInfo['fname']       = isset($elements[0]['tr'][11]['td'][0]['#text']) ? strtolower($elements[0]['tr'][11]['td'][0]['#text']) : null;
-            $userInfo['lname']       = isset($elements[0]['tr'][12]['td'][0]['#text']) ? strtolower($elements[0]['tr'][12]['td'][0]['#text']) : null;
-            $userInfo['country']     = isset($elements[0]['tr'][13]['td'][0]['#text']) ? strtolower($elements[0]['tr'][13]['td'][0]['#text']) : null;
-            $userInfo['birthday']    = isset($elements[0]['tr'][14]['td'][0]['#text']) ? strtolower($elements[0]['tr'][14]['td'][0]['#text']) : null;
-            $userInfo['regTime']     = isset($elements[0]['tr'][20]['td'][0]['#text']) ? $elements[0]['tr'][20]['td'][0]['#text'] : null;
-            $userInfo['active']      = isset($elements[0]['tr'][26]['td'][0]['#text']) ? strtolower($elements[0]['tr'][26]['td'][0]['#text']) : null;
-            $userInfo['traffic']     = isset($elements[0]['tr'][34]['td'][0]['#text']) || strtolower($elements[0]['tr'][34]['td'][0]['#text']) != 'undefined' ? strtolower($elements[0]['tr'][34]['td'][0]['#text']) : strtolower($elements[0]['tr'][35]['td'][0]['#text']);
-            $userInfo['platform']    = isset($elements[0]['tr'][36]['td'][0]['#text']) ? strtolower($elements[0]['tr'][36]['td'][0]['#text']) : null;
-            $userInfo['ll']          = isset($elements[0]['tr'][21]['td'][0]['#text']) && isset($elements[0]['tr'][22]['td'][0]['#text']) ? strtolower($elements[0]['tr'][21]['td'][0]['#text']) . "," . strtolower($elements[0]['tr'][22]['td'][0]['#text']) : null;
+            $userInfo['siteId']      = isset($elements[0]['tr'][8]['td'][0]['#text']) ? strtolower($elements[0]['tr'][8]['td'][0]['#text']) : null;
+            $userInfo['gender']      = isset($elements[0]['tr'][10]['td'][0]['#text']) ? strtolower($elements[0]['tr'][10]['td'][0]['#text']) : 'male';
+            $userInfo['orientation'] = isset($elements[0]['tr'][11]['td'][0]['#text']) ? strtolower($elements[0]['tr'][11]['td'][0]['#text']) : null;
+            $userInfo['fname']       = isset($elements[0]['tr'][12]['td'][0]['#text']) ? strtolower($elements[0]['tr'][12]['td'][0]['#text']) : null;
+            $userInfo['lname']       = isset($elements[0]['tr'][13]['td'][0]['#text']) ? strtolower($elements[0]['tr'][13]['td'][0]['#text']) : null;
+            $userInfo['country']     = isset($elements[0]['tr'][14]['td'][0]['#text']) ? strtolower($elements[0]['tr'][14]['td'][0]['#text']) : null;
+            $userInfo['birthday']    = isset($elements[0]['tr'][15]['td'][0]['#text']) ? strtolower($elements[0]['tr'][15]['td'][0]['#text']) : null;
+            $userInfo['regTime']     = isset($elements[0]['tr'][22]['td'][0]['#text']) ? $elements[0]['tr'][22]['td'][0]['#text'] : null;
+            $userInfo['active']      = isset($elements[0]['tr'][28]['td'][0]['#text']) ? strtolower($elements[0]['tr'][28]['td'][0]['#text']) : null;
+            $userInfo['traffic']     = isset($elements[0]['tr'][36]['td'][0]['#text']) || strtolower($elements[0]['tr'][36]['td'][0]['#text']) != 'undefined' ? strtolower($elements[0]['tr'][36]['td'][0]['#text']) : strtolower($elements[0]['tr'][37]['td'][0]['#text']);
+            $userInfo['platform']    = isset($elements[0]['tr'][38]['td'][0]['#text']) ? strtolower($elements[0]['tr'][38]['td'][0]['#text']) : null;
+            $userInfo['ll']          = isset($elements[0]['tr'][23]['td'][0]['#text']) && isset($elements[0]['tr'][24]['td'][0]['#text']) ? strtolower($elements[0]['tr'][23]['td'][0]['#text']) . "," . strtolower($elements[0]['tr'][24]['td'][0]['#text']) : null;
             
             $userInfo['chatsCount']  = isset($elements[0]['tr'][28]['td'][0]['a'][0]['#text']) ? $elements[0]['tr'][28]['td'][0]['a'][0]['#text'] : null;
             
@@ -559,7 +559,7 @@ class UserInfo
                     `task_id` 
                 FROM
                     `profile`
-                WHERE `task_id` IS NOT NULL ORDER BY `task_id` DESC
+                WHERE `task_id` IS NOT NULL ORDER BY `task_id` DESC LIMIT 10
                 ;");
             $getTasksListQuery->execute();
         }
@@ -989,8 +989,7 @@ class UserInfo
         FROM
           `sites_config`
     WHERE `skin` != 'lgw.vanilla'
-    AND `enabled` = true
-    AND `company` = 'PMMedia';
+    AND `enabled` = true;
         ;");
         }
         catch (PDOException $e) {

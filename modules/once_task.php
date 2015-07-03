@@ -44,12 +44,22 @@ if (isset($_REQUEST['ajax'])) {
         $site        = isset($_REQUEST['site']) ? $_REQUEST['site'] : false;
         $device      = isset($_REQUEST['device']) ? $_REQUEST['device'] : false;
         $referer     = isset($_REQUEST['referer']) ? $_REQUEST['referer'] : false;
+        $payFor     = isset($_REQUEST['pay']) && $_REQUEST['pay'] == true ? true : true;
         $proxy[$country]['zipCode'] = str_replace(" ", "+", $proxy[$country]['zipCode']);
         $proxy[$country]['cityName'] = str_replace(" ", "+", $proxy[$country]['cityName']);
         $city = ($country == 'USA' || $country == 'USA2') ? $proxy[$country]['zipCode'] : ucfirst(strtolower($proxy[$country]['cityName'])).',+'.$proxy[$country]['zipCode'];
         $script = "scriptsJS/registerUser.js";
         $debug = false;
         if(isset($_GET['debug']) || $debug) {
+                /*if($country == "GBR") {
+            $cityArr = array('Blackrod, BL6', 'Coppull, PR7', 'Rushden, NN10', 'Huntingdon, PE28', 'Holmpton, HU19', 'Winestead, HU12', 'Stretton, WA4', 'Thorpe Bay, SS1');
+        } elseif ($country == "AUS") {
+            $cityArr = array('Mawson, 7151', 'Belfield, 2191', 'Turrella, 2205', 'Sandringham, 2219', 'Jabiru, 0886', 'Gunyangara, 0880', 'York Town, 7270', 'Woollahra, 2025');
+        } elseif ($country == "CAN") {
+            $cityArr = array('Westwold, V0E 3B0', 'Walhachin, V0K 2P0', 'Ulukhaktok, X0E 0S0', 'Woodbridge, L4L 9T8', 'Wilmot Station, B0P 1W0', 'Paradise, B0S 1R0', 'Wheatley River, C1E 0T4', 'Yarmouth, B5A 4W3');
+        }
+
+        $city = $cityArr[rand(0,7)];*/
                 echo trim("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city ". $referer);
                 $script                 = "scriptsJS/confirmUser.js";
                 $autologin              = "https://quierorollo.com/site/autologin/key/76822422ba1924be5c478c17ae0b7702";
@@ -63,6 +73,14 @@ if (isset($_REQUEST['ajax'])) {
             exit;
         }
         /*--proxy=".$proxy[$country]['domain'].":".$proxy[$country]['port']." --proxy-auth=andreya@ufins.com:srmlvpkk*/
+        /*if($country == "GBR") {
+            $cityArr = array('Blackrod,+BL6', 'Coppull,+PR7', 'Rushden,+NN10', 'Huntingdon,+PE28', 'Holmpton,+HU19', 'Winestead,+HU12', 'Stretton,+WA4', 'Thorpe Bay,+SS1');
+        } elseif ($country == "AUS") {
+            $cityArr = array('Mawson,+7151', 'Belfield,+2191', 'Turrella,+2205', 'Sandringham,+2219', 'Jabiru,+0886', 'Gunyangara,+0880', 'York Town,+7270', 'Woollahra,+2025');
+        } elseif ($country == "CAN") {
+            $cityArr = array('Westwold,+V0E+3B0', 'Walhachin,+V0K+2P0', 'Ulukhaktok,+X0E+0S0', 'Woodbridge,+L4L+9T8', 'Wilmot Station,+B0P+1W0', 'Paradise,+B0S+1R0', 'Wheatley River,+C1E+0T4', 'Yarmouth,+B5A+4W3');
+        }
+        $city = $cityArr[rand(0,7)];*/
         $script_result = trim(shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city ". $referer));
         $email = is_valid_email_address($script_result) ? $script_result : array('response' => $script_result  , 'result' => 'false');
         if(is_array($email)) {
@@ -77,6 +95,7 @@ if (isset($_REQUEST['ajax'])) {
                 exit;
             }
         }
+
         $ui->syncUserInfo($email, $adminConf[0]);
         $ui->syncUserInfo($email, $adminConf[1]);
         $response = $ui->findByEmail($email);
@@ -85,8 +104,8 @@ if (isset($_REQUEST['ajax'])) {
             $script                 = "scriptsJS/confirmUser.js";
             $site = $response['data'][0]['siteDomain'];
             $autologin              = 'https://' . $response['data'][0]['siteDomain'] . '/site/autologin/key/' . $response['data'][0]['key'];
-            $output                 = shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site");
-
+            $output                 = shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site ".$payFor." ".$device);
+            //echo "libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site ".$payFor;
             $ui->saveUserTask($task_id, $response['data'][0]['key']);
             $response['result'] = true;            
         } else {
