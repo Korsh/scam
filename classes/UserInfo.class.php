@@ -26,6 +26,18 @@ class UserInfo
         );
     }
     
+    function dashesToCamelCase($string, $capitalizeFirstCharacter = false) 
+    {
+
+        $str = str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
+
+        if (!$capitalizeFirstCharacter) {
+            $str[0] = strtolower($str[0]);
+        }
+
+        return $str;
+    }
+    
     function syncUserInfo($createria, $dc)
     {
         $this->setDc($dc);
@@ -74,31 +86,33 @@ class UserInfo
             $out                      = curl_exec($this->ch);
             $html                     = new nokogiri($out);
             $elements                 = $html->get("#yw1")->toArray();
-            //echo '<pre>'.print_r($elements, true).'</pre>';
-            //exit;
-            $userInfo['id']          = isset($elements[0]['tr'][0]['td'][0]['#text']) ? strtolower($elements[0]['tr'][0]['td'][0]['#text']) : null;
-            $userInfo['mail']        = isset($elements[0]['tr'][2]['td'][0]['#text']) ? strtolower($elements[0]['tr'][2]['td'][0]['#text']) : null;
-            $userInfo['login']       = isset($elements[0]['tr'][4]['td'][0]['#text']) ? strtolower($elements[0]['tr'][4]['td'][0]['#text']) : null;
-            $userInfo['password']    = isset($elements[0]['tr'][5]['td'][0]['#text']) ? $elements[0]['tr'][5]['td'][0]['#text'] : null;
-            $userInfo['key']         = isset($elements[0]['tr'][6]['td'][0]['#text']) ? strtolower($elements[0]['tr'][6]['td'][0]['#text']) : null;
-            $userInfo['siteId']      = isset($elements[0]['tr'][8]['td'][0]['#text']) ? strtolower($elements[0]['tr'][8]['td'][0]['#text']) : null;
-            $userInfo['gender']      = isset($elements[0]['tr'][10]['td'][0]['#text']) ? strtolower($elements[0]['tr'][10]['td'][0]['#text']) : 'male';
-            $userInfo['orientation'] = isset($elements[0]['tr'][11]['td'][0]['#text']) ? strtolower($elements[0]['tr'][11]['td'][0]['#text']) : null;
-            $userInfo['fname']       = isset($elements[0]['tr'][12]['td'][0]['#text']) ? strtolower($elements[0]['tr'][12]['td'][0]['#text']) : null;
-            $userInfo['lname']       = isset($elements[0]['tr'][13]['td'][0]['#text']) ? strtolower($elements[0]['tr'][13]['td'][0]['#text']) : null;
-            $userInfo['country']     = isset($elements[0]['tr'][14]['td'][0]['#text']) ? strtolower($elements[0]['tr'][14]['td'][0]['#text']) : null;
-            $userInfo['birthday']    = isset($elements[0]['tr'][15]['td'][0]['#text']) ? strtolower($elements[0]['tr'][15]['td'][0]['#text']) : null;
-            $userInfo['regTime']     = isset($elements[0]['tr'][22]['td'][0]['#text']) ? $elements[0]['tr'][22]['td'][0]['#text'] : null;
-            $userInfo['active']      = isset($elements[0]['tr'][28]['td'][0]['#text']) ? strtolower($elements[0]['tr'][28]['td'][0]['#text']) : null;
-            $userInfo['traffic']     = isset($elements[0]['tr'][36]['td'][0]['#text']) || strtolower($elements[0]['tr'][36]['td'][0]['#text']) != 'undefined' ? strtolower($elements[0]['tr'][36]['td'][0]['#text']) : strtolower($elements[0]['tr'][37]['td'][0]['#text']);
-            $userInfo['platform']    = isset($elements[0]['tr'][38]['td'][0]['#text']) ? strtolower($elements[0]['tr'][38]['td'][0]['#text']) : null;
-            $userInfo['ll']          = isset($elements[0]['tr'][23]['td'][0]['#text']) && isset($elements[0]['tr'][24]['td'][0]['#text']) ? strtolower($elements[0]['tr'][23]['td'][0]['#text']) . "," . strtolower($elements[0]['tr'][24]['td'][0]['#text']) : null;
-            
+            foreach($elements[0]['tr'] as $key => $value) {
+                $userInfoArray[$this->dashesToCamelCase(str_replace(array(':', '(', ')'), '', $value['th'][0]['#text']))] = $value['td'][0]['#text'];
+            }
+            $userInfo = array(
+                'id'          => $userInfoArray['id'],
+                'mail'        => $userInfoArray['email'],
+                'login'       => $userInfoArray['login'],
+                'password'    => $userInfoArray['password'],
+                'key'         => $userInfoArray['autologinKey'],
+                'siteId'      => $userInfoArray['siteId'],
+                'gender'      => $userInfoArray['gender'],
+                'orientation' => $userInfoArray['sexualOrientation'],
+                'fname'       => $userInfoArray['firstName'],
+                'lname'       => $userInfoArray['lastName'],
+                'country'     => $userInfoArray['countryCode'],
+                'birthday'    => $userInfoArray['birthday'],
+                'regTime'     => $userInfoArray['registeredTime'],
+                'active'      => $userInfoArray['isDeleted'],
+                'traffic'     => $userInfoArray['trafficSource'],
+                'platform'    => $userInfoArray['platform'],
+                'll'          => $userInfoArray['latitude'].':'.$userInfoArray['longitude'],
+                'searchable'  => $userInfoArray['isSearchable'],
+            );
             $userInfo['chatsCount']  = isset($elements[0]['tr'][28]['td'][0]['a'][0]['#text']) ? $elements[0]['tr'][28]['td'][0]['a'][0]['#text'] : null;
             
             preg_match_all("/([0-9]+)/", $userInfo['chatsCount'], $matches);
             $userInfo['chatsCount']  = trim($matches[1][0]);
-            $userInfo['searchable']  = isset($elements[0]['tr'][41]['td'][0]['#text']) && strtolower($elements[0]['tr'][41]['td'][0]['#text']) == "yes" ? 1 : 0;
             $elements                = $html->get(".user-block")->toArray();
             $userInfo['confirmed']   = !empty($elements[3]['h5'][0]['span'][0]['#text']) && strtolower($elements[3]['h5'][0]['span'][0]['#text']) == "confirmed" ? 1 : 0;
             curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '/user/edit?user_id=' . $userInfo['id']);
@@ -1104,6 +1118,7 @@ class UserInfo
                     $answer['data'][$i]['chatsCount'] = $row['chats'];
                     $answer['data'][$i]['siteId']     = $row['site_id'];
                     $answer['data'][$i]['siteDomain'] = $row['site_domain'];
+                    $answer['data'][$i]['splitGroup']  = hexdec(substr(md5($row['id']), 0, 4)) % 100;
                     $i++;
                 }
                 return $answer;

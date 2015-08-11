@@ -68,7 +68,7 @@ switch (device) {
     };
      
 phantom.onError = function(msg, trace) {
-
+    console.log(msg+'/ trace: '+trace);
 };
     page.onLoadStarted = function() {
         loadInProgress = true;
@@ -120,6 +120,14 @@ phantom.onError = function(msg, trace) {
         },*/
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom) {
+                $('#switcher2RegForm').click();  
+                return;
+            }, phantom);
+        },
+        
+        function() {
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom, gender, orientation, year, month, day, email, password, city, screenname, debug) {
                 $('.btn--popup').click();
                 console.log(debug);
@@ -139,8 +147,10 @@ phantom.onError = function(msg, trace) {
                 if(debug) console.log("$('#UserForm_login').val("+screenname+").change().removeAttr('disabled');");
                 postCode = $('#UserForm_location').val();
                 if(debug) console.log("postCode = $('#UserForm_location').val();");
-                postCode = postCode.replace(/ /g, '');
-                if(debug) console.log("postCode = postCode.replace(/ /g, '');");
+                if(postCode) {
+                    postCode = postCode.replace(/ /g, '');
+                }                
+                if(debug && postCode) console.log("postCode = postCode.replace(/ /g, '');");
                 if(postCode == '') {
                     $('#UserForm_location').val(city).removeAttr('disabled');
                     if(debug) console.log("$('#UserForm_location').val("+city+").removeAttr('disabled');");
