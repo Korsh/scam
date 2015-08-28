@@ -12,9 +12,10 @@
     var ip = system.args[7];
     var city = system.args[8];
     city = city.replace(/\+/g, ' ');
-    var referer = (system.args[9] != undefined || system.args[9] != null) ? system.args[9] : '';
-    var debug = system.args[10] != null ? system.args[10] : false;
-    console.log(system.args[10]);
+    var requestId = system.args[9];
+    var referer = (system.args[10] != undefined || system.args[10] != null) ? system.args[10] : '';
+    var debug = system.args[11] != null ? system.args[11] : false;
+    console.log(system.args[11]);
     console.log(debug);
     var year = date.getFullYear()-age;
     var day = 10;//addZero(date.getDay());
@@ -88,19 +89,11 @@ phantom.onError = function(msg, trace) {
         function() {
             page.open('https://'+platform+'.'+site+'/admin2/', function(status) {
             });
+
             phantom.addCookie({
                 'name': 'ip_address',
                 'value': ip,
                 'domain': platform+'.'+site
-            });
-        },
-        function() {
-            page.open('https://'+site+'/admin2/', function(status) {
-            });
-            phantom.addCookie({
-                'name': 'ip_address',
-                'value': ip,
-                'domain': site
             });
         },
         function() {
@@ -356,7 +349,7 @@ interval = setInterval(function() {
   if (!loadInProgress && typeof steps[testindex] == "function") {
     func = steps[testindex];
     func();
-    page.render('../screenshots/'+uniqueAdding+'('+(testindex) + ")2.png");
+    page.render('../screenshots/'+site+'/'+requestId+'/register_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
     testindex++;
   }
   if (typeof steps[testindex] != "function") {

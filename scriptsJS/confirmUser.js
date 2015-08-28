@@ -6,8 +6,9 @@
     var ip = system.args[2];
     var site = system.args[3];
     var device = system.args[5];
+    var requestId = system.args[6];
     var platform = "www";
-    var payFor = system.args[4] != 0 ? true : false;
+    var payFor = system.args[4] == 1 ? true : false;
     var cardNumber = ['4012','8888','8888','1881'];
     var cardMonth = '10';
     var cardYear = '2016';
@@ -38,17 +39,24 @@ switch (device) {
         platform = "www";
         break;
     case "Firefox":
-        userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0";
+        userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; en-us; rv:29.0) Gecko/20100101 Firefox/29.0";
         platform = "www";
         break;
     default:
-        userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0";
+        userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; en-us; rv:29.0) Gecko/20100101 Firefox/29.0";
         platform = "www";
         break;
 }
 
-    page.onConsoleMessage = function(msg) {
+page.onError = function (msg, trace) {
+    console.log(msg);
+    trace.forEach(function(item) {
+        console.log('  ', item.file, ':', item.line);
+    });
 
+};
+
+    page.onConsoleMessage = function(msg) {
     };  
     page.onLoadStarted = function() {
         loadInProgress = true;
@@ -57,16 +65,16 @@ switch (device) {
         loadInProgress = false;
     };
 
-      phantom.addCookie({
+    phantom.addCookie({
         'name': 'ip_address',
         'value': ip,
-        'domain': 'https://www.'+site
+        'domain': platform+'.'+site
     });
-    
     var steps = [
         function() {
             page.open('https://'+platform+'.'+site+'/admin2/', function(status) {
             });
+
             phantom.addCookie({
                 'name': 'ip_address',
                 'value': ip,
@@ -74,55 +82,71 @@ switch (device) {
             });
         },
         function() {
-            page.open('https://'+site+'/admin2/', function(status) {
-            });
-            phantom.addCookie({
-                'name': 'ip_address',
-                'value': ip,
-                'domain': site
+            page.open('https://'+platform+'.'+site, function(status) {
             });
         },
         function() {
-            page.open(autologin);
+            page.open('https://'+platform+'.'+autologin, function(status) {
+            });
         },
         function() {
             page.open('/funnel');
         },
         function() {
             if(payFor) {
-                page.open('/pay/membership');
+                page.open('https://'+platform+'.'+site+'/pay/membership', function(status) {
+            });
             }            
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor) {
                 if(payFor) {
+                    $('#continueButton').click();
+                }
+                page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
+            }, phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor);
+        },
+        function() {
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor) {
+                if(payFor) {
                     cardFull = cardNumber[0]+cardNumber[1]+cardNumber[2]+cardNumber[3];
-                    if(document.getElementById('CreditCardPaymentForm_card_number')){
-                        document.getElementById('CreditCardPaymentForm_card_number').value =  cardFull;
+                  if(document.getElementById('CreditCardPaymentForm_card_number')) {
+                      setInputValue(document.getElementById('CreditCardPaymentForm_card_number'), cardFull);
+                  }
+                  if(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children[0].children.length > 1) {
+                    for(i=0;i<4;i++) {
+                        
+                        setInputValue(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children[0].children[i], cardNumber[i]);
                     }
-                    if(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children.length > 1) {
-                        for(i=0;i<4;i++) {
-                            setInputValue(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children[i], cardNumber[i]);
-                        }
-                    }
+                  }
+
+                    if(document.getElementById('CreditCardPaymentForm_cpf'))setInputValue(document.getElementById('CreditCardPaymentForm_cpf'), cpfValue);
                     if(document.getElementById('CreditCardPaymentForm_expiration_date_m')){
                         setInputValue(document.getElementById('CreditCardPaymentForm_expiration_date_m'), cardMonth);
                         document.getElementById('CreditCardPaymentForm_expiration_date_m').parentNode.getElementsByTagName('span')[0].innerHTML = cardMonth;
                     }
-                    if(document.getElementById('CreditCardPaymentForm_expiration_date_y')){
-                        setInputValue(document.getElementById('CreditCardPaymentForm_expiration_date_y'), cardYear);
-                        document.getElementById('CreditCardPaymentForm_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = cardYear;
-                    }
-                    if(document.getElementById('CreditCardPaymentForm_card_holder'))setInputValue(document.getElementById('CreditCardPaymentForm_card_holder'), cardNameFirst+' '+cardNameLast);
-                    if(document.getElementById('CreditCardPaymentForm_security_number'))setInputValue(document.getElementById('CreditCardPaymentForm_security_number'), cardCV2);
-                    if(document.getElementById('CreditCardPaymentForm_name_first'))setInputValue(document.getElementById('CreditCardPaymentForm_name_first'), cardNameFirst);
-                    if(document.getElementById('CreditCardPaymentForm_name_last'))setInputValue(document.getElementById('CreditCardPaymentForm_name_last'), cardNameLast);
-                    if(document.getElementById('CreditCardPaymentForm_cpf'))setInputValue(document.getElementById('CreditCardPaymentForm_cpf'), cpfValue);
-                    
-                    if(document.getElementById('CreditCardPaymentForm_address'))setInputValue(document.getElementById('CreditCardPaymentForm_address'), cardNameLast);
-                    if(document.getElementById('CreditCardPaymentForm_city'))setInputValue(document.getElementById('CreditCardPaymentForm_city'), cardAddress);
-                    if(document.getElementById('CreditCardPaymentForm_postal_code'))setInputValue(document.getElementById('CreditCardPaymentForm_postal_code'), cardZip);
+
+                  if(document.getElementById('CreditCardPaymentForm_expiration_date_y')){
+                    setInputValue(document.getElementById('CreditCardPaymentForm_expiration_date_y'), cardYear);
+                    document.getElementById('CreditCardPaymentForm_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = cardYear;
+                  }
+
+                  if(document.getElementById('CreditCardPaymentForm_card_holder'))setInputValue(document.getElementById('CreditCardPaymentForm_card_holder'), cardNameFirst+' '+cardNameLast);
+
+                  if(document.getElementById('CreditCardPaymentForm_security_number'))setInputValue(document.getElementById('CreditCardPaymentForm_security_number'), cardCV2);
+
+                  if(document.getElementById('CreditCardPaymentForm_name_first'))setInputValue(document.getElementById('CreditCardPaymentForm_name_first'), cardNameFirst);
+
+                  if(document.getElementById('CreditCardPaymentForm_name_last'))setInputValue(document.getElementById('CreditCardPaymentForm_name_last'), cardNameLast);
+                  if(document.getElementById('CreditCardPaymentForm_address'))setInputValue(document.getElementById('CreditCardPaymentForm_address'), cardNameLast);
+
+                  if(document.getElementById('CreditCardPaymentForm_city'))setInputValue(document.getElementById('CreditCardPaymentForm_city'), cardAddress);
+
+                  if(document.getElementById('CreditCardPaymentForm_postal_code'))setInputValue(document.getElementById('CreditCardPaymentForm_postal_code'), cardZip);
+
+
                     document.getElementById('CreditCardPaymentForm_card_holder').click();
                 }
                 function setInputValue(element, value){
@@ -156,7 +180,17 @@ switch (device) {
                     element.value = value;
                   }
                 }
+                page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
             }, phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor);
+        },
+        function() {
+            page.evaluate(function(phantom, payFor, platform) {
+                if(payFor) {
+                        $('#subscription').submit();
+                        $('#creditCardPaymentForm').submit();
+                    page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(_testindex) + ").png");
+                }
+            }, phantom, payFor, platform);
         },
         function() {
             page.open('/site/logout');
@@ -166,13 +200,13 @@ switch (device) {
 interval = setInterval(function() {
   if (!loadInProgress && typeof steps[testindex] == "function") {
     steps[testindex]();
-    page.render('../screenshots/'+uniqueAdding+'('+(testindex) + ").png");
+    page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
     phantom.exit();
   }
-}, 1500);
+}, 800);
 /*
 function WriteToFile(msg, uniqueAdding, testindex) {
     set fso = CreateObject("Scripting.FileSystemObject");  

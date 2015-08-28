@@ -33,7 +33,7 @@ if (isset($_REQUEST['ajax'])) {
     if (isset($_REQUEST['register']) && $_REQUEST['register'] 
         && isset($_REQUEST['email']) 
         && is_valid_email_address($_REQUEST['email']) 
-        && isset($_REQUEST['site']) && $_REQUEST['email'] != "filatov") {
+        && isset($_REQUEST['site'])) {
         $email       = isset($_REQUEST['email']) ? $_REQUEST['email'] : false;
         $request_id  = isset($_REQUEST['request_id']) ? $_REQUEST['request_id'] : false;
         $task_id     = isset($_REQUEST['task_id']) ? $_REQUEST['task_id'] : time();
@@ -44,7 +44,7 @@ if (isset($_REQUEST['ajax'])) {
         $site        = isset($_REQUEST['site']) ? $_REQUEST['site'] : false;
         $device      = isset($_REQUEST['device']) ? $_REQUEST['device'] : false;
         $referer     = isset($_REQUEST['referer']) ? $_REQUEST['referer'] : false;
-        $payFor     = isset($_REQUEST['pay']) && $_REQUEST['pay'] == true ? true : true;
+        $payFor      = isset($_REQUEST['paid']) ? $_REQUEST['paid'] : 0;
         $proxy[$country]['zipCode'] = str_replace(" ", "+", $proxy[$country]['zipCode']);
         $proxy[$country]['cityName'] = str_replace(" ", "+", $proxy[$country]['cityName']);
         $city = ($country == 'USA' || $country == 'USA2') ? $proxy[$country]['zipCode'] : ucfirst(strtolower($proxy[$country]['cityName'])).',+'.$proxy[$country]['zipCode'];
@@ -81,7 +81,7 @@ if (isset($_REQUEST['ajax'])) {
             $cityArr = array('Westwold,+V0E+3B0', 'Walhachin,+V0K+2P0', 'Ulukhaktok,+X0E+0S0', 'Woodbridge,+L4L+9T8', 'Wilmot Station,+B0P+1W0', 'Paradise,+B0S+1R0', 'Wheatley River,+C1E+0T4', 'Yarmouth,+B5A+4W3');
         }
         $city = $cityArr[rand(0,7)];*/
-        $script_result = trim(shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city ". $referer));
+        $script_result = trim(shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city $request_id $referer"));
         $email = is_valid_email_address($script_result) ? $script_result : array('response' => $script_result  , 'result' => 'false');
         if(is_array($email)) {
             preg_match_all("/([A-Za-z.0-9+]*[@]{1}[A-Za-z.0-9]*)/i", $email['response'], $matches);
@@ -95,18 +95,18 @@ if (isset($_REQUEST['ajax'])) {
                 exit;
             }
         }
-
         $ui->syncUserInfo($email, $adminConf[0]);
-        $ui->syncUserInfo($email, $adminConf[1]);
         $response = $ui->findByEmail($email);
         if (!empty($response['data'])) {
-            $response['request_id'] = $request_id;
+            $platform = $response['data'][0]['platform'] == 'webSite' ? 'www' : 'm';
             $script                 = "scriptsJS/confirmUser.js";
             $site = $response['data'][0]['siteDomain'];
-            $autologin              = 'https://' . $response['data'][0]['siteDomain'] . '/site/autologin/key/' . $response['data'][0]['key'];
-            $output                 = shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site ".$payFor." ".$device);
-            //echo "libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site ".$payFor;
+            $autologin              = $response['data'][0]['siteDomain'] . '/site/autologin/key/' . $response['data'][0]['key'];
+            $output                 = shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site $payFor $device $request_id");
             $ui->saveUserTask($task_id, $response['data'][0]['key']);
+            $ui->syncUserInfo($email, $adminConf[0]);
+            $response = $ui->findByEmail($email);
+            $response['request_id'] = $request_id;
             $response['result'] = true;            
         } else {
             $ui->saveTmpUser($email);
@@ -117,35 +117,6 @@ if (isset($_REQUEST['ajax'])) {
         }
         echo json_encode($response);
         exit;
-    } elseif (isset($_REQUEST['register']) && $_REQUEST['register'] 
-        && isset($_REQUEST['email']) 
-        && isset($_REQUEST['site']) && $_REQUEST['email'] == "filatov") {
-            $email       = isset($_REQUEST['email']) ? $_REQUEST['email'] : false;
-            $request_id  = isset($_REQUEST['request_id']) ? $_REQUEST['request_id'] : false;
-            $task_id     = isset($_REQUEST['task_id']) ? $_REQUEST['task_id'] : time();
-            $age         = isset($_REQUEST['age']) ? $_REQUEST['age'] : '21';
-            $gender      = isset($_REQUEST['gender']) ? $_REQUEST['gender'] : 'male';
-            $orientation = isset($_REQUEST['orientation']) ? $_REQUEST['orientation'] : 'hetero';
-            $country     = isset($_REQUEST['country']) ? $_REQUEST['country'] : false;
-            $site        = isset($_REQUEST['site']) ? $_REQUEST['site'] : false;
-            $device      = isset($_REQUEST['device']) ? $_REQUEST['device'] : false;
-            $script      = "scriptsJS/registerUserTrunk.js";
-            $mailDomains = array('mailinator.com','mailcatch.com','yopmail.com','yopmail.net','yopmail.fr','owlpic.com','dispostable.com','tempinbox.com','hmamail.com','trash2009.com','20minutemail.com','guerrillamailblock.com','jnxjn.com','klzlk.com','insorg-mail.info','nepwk.com','mailmetrash.com','dacoolest.com','fakeinbox.com','teleworm.com','teleworm.us','cool.fr.nf','nospam.ze.tc','sharklasers.com','rppkn.com','mailinator2.com','junkmail.com','24hourmail.com','nowmymail.com','tempthe.net','emailthe.net','hushmail.com','nomail.xl.cx','7tags.com','getairmail.com','rtrtr.com','dudmail.com','onewaymail.com','keepmymail.com','freemail.ms','privy-mail.de','vpnsmail.me','spamavert.com','meltmail.com','crapmail.org','dayrep.com','rmqkr.net','armyspy.com','notest.net','altaddress.com','yahoo.com.ph','mega.zik.dj','moncourrier.fr.nf','mmmmail.com','mailnesia.com','aaaaaaaaaaaaaaaaaaaaaa.aaa','courrieltemporaire.com','spamfree24.org','explodemail.com','mailinator.net','guerrillamail.net','hushmail.me','zebins.eu','mailHazard.com','mailHazard.us','mailHz.me','zebins.com','amail4.me','monemail.fr.nf','monmail.fr.nf','courriel.fr.nf','temporarioemail.com.br','sofimail.com','ypmail.webarnak.fr.eu.org','ojooo.com','guerrillamail.com','guerrillamail.biz','guerrillamail.org','guerrillamail.de','spam4.me','superrito.com','yahoo.com.my','yahoo.co.th','suioe.com','my10minutemail.com','leemail.me','jourrapide.com','inst1.com','einrot.com','drdrb.com','cuvox.de','consultant.com','anon.leemail.me','adzek.com','reallymymail.com','burstmail.info','dropjar.com','mailismagic.com','fleckens.hu','toiea.com','gustr.com','trbvm.com','6paq.com');
-
-            $registeredMails = array();
-            foreach($mailDomains as $mailDomain) {
-                $mailToReg = $email.'@'.$mailDomain;
-                echo $registerMail = trim(shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script playcougar.phoenix.filatov.trunk-front.pmmedia.com.ua $mailToReg $device $gender $orientation $age " . $proxy[$country]['ipAddress']));
-                if($registerMail == $mailToReg) {
-                    $registeredMails[][$mailToReg] = true;
-                } else {
-                    $registeredMails[][$mailToReg] = false;
-                }
-                
-            }
-            var_dump($registeredMails);
-            mail('arzhanov@ufins.com', 'scam domains', json_encode($registeredMails));
-            mail('romanf@ufins.com', 'scam domains', json_encode($registeredMails));
     } elseif (isset($_REQUEST['activity']) && $_REQUEST['activity'] && isset($_REQUEST['userId'])) {
         $userId = isset($_REQUEST['userId']) ? $_REQUEST['userId'] : false;
         $userActions->setAdminLoginPass($adminConf[0]['login'], $adminConf[0]['pass']);

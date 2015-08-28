@@ -71,5 +71,7 @@ Count:
 
 Referer:
 <input type="url" id="referer">
+Paid:
+<input type="checkbox" id="paid">
 <button name="add_users" id="add_users">Add</button>
 </div>

@@ -42,53 +42,13 @@ class UserInfo
     {
         $this->setDc($dc);
         $this->adminLogin();
-        curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . $this->findUrl . '/?FindUserForm[user]=' . urlencode($createria));
-        $findArr = array(
-            "YII_CSRF_TOKEN" => "",
-            "FindUserForm" => array(
-                "user" => $createria
-            )
-        );
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-        $out = curl_exec($this->ch);
-        
-        $html     = new nokogiri($out);
-        $elements = $html->get(".grid-view")->toArray();
-        $count  = 0;
-        $idArr = array();
-        $userInfo = array();
-        for ($i = 0; $i < sizeof($elements); $i++) {
-            if (isset($elements[$i]['table'][0]['tbody'][0]['tr']['td'])) {
-                if (isset($elements[$i]['table'][0]['tbody'][0]['tr']['td'][4])) {
-                    $autologinLink = $elements[$i]['table'][0]['tbody'][0]['tr']['td'][4]['a']['href'];
-                    preg_match_all("/[\S]+userId=([0-9a-z]+)/i", $autologinLink, $matches);
-                    if ($matches[1][0] != '') {
-                        $idArr[] = trim($matches[1][0]);
-                    }
-                }
-            } else {
-                for ($y = 0; $y < sizeof($elements[$i]['table'][0]['tbody'][0]['tr']); $y++) {
-                    if (isset($elements[$i]['table'][0]['tbody'][0]['tr'][$y]['td'][4])) {
-                        $autologinLink = $elements[$i]['table'][0]['tbody'][0]['tr'][$y]['td'][4]['a']['href'];
-                        preg_match_all("/[\S]+userId=([0-9a-z]+)/i", $autologinLink, $matches);
-                        if (!empty($matches[1][0]) && $matches[1][0] != '') {
-                            $idArr[] = trim($matches[1][0]);
-                        }
-                    }
-                }
-            }
-            
-        }
-        for ($i = 0; $i < sizeof($idArr); $i++) {
-            curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . $this->findUrl . '?user_id=' . $idArr[$i]);
+        curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . $this->findUrl . '/?FindUserForm[user]=' . urlencode($createria).'&json=true');
             
             curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-            $out                      = curl_exec($this->ch);
-            $html                     = new nokogiri($out);
-            $elements                 = $html->get("#yw1")->toArray();
-            foreach($elements[0]['tr'] as $key => $value) {
-                $userInfoArray[$this->dashesToCamelCase(str_replace(array(':', '(', ')'), '', $value['th'][0]['#text']))] = $value['td'][0]['#text'];
-            }
+            $out            = curl_exec($this->ch);
+
+            $userInfoArray  = array_shift(array_shift(json_decode($out,true)));
+            
             $userInfo = array(
                 'id'          => $userInfoArray['id'],
                 'mail'        => $userInfoArray['email'],
@@ -100,21 +60,17 @@ class UserInfo
                 'orientation' => $userInfoArray['sexualOrientation'],
                 'fname'       => $userInfoArray['firstName'],
                 'lname'       => $userInfoArray['lastName'],
-                'country'     => $userInfoArray['countryCode'],
+                'country'     => $userInfoArray['country'],
                 'birthday'    => $userInfoArray['birthday'],
-                'regTime'     => $userInfoArray['registeredTime'],
-                'active'      => $userInfoArray['isDeleted'],
+                'regTime'     => $userInfoArray['registeredAt'],
+                'firstLogin'  => $userInfoArray['firstLoginAt'],
+                'active'      => $userInfoArray['isActive'],
                 'traffic'     => $userInfoArray['trafficSource'],
-                'platform'    => $userInfoArray['platform'],
+                'platform'    => $userInfoArray['registrationPlatform'],
                 'll'          => $userInfoArray['latitude'].':'.$userInfoArray['longitude'],
                 'searchable'  => $userInfoArray['isSearchable'],
+                'confirmed'   => $userInfoArray['isConfirmed'],
             );
-            $userInfo['chatsCount']  = isset($elements[0]['tr'][28]['td'][0]['a'][0]['#text']) ? $elements[0]['tr'][28]['td'][0]['a'][0]['#text'] : null;
-            
-            preg_match_all("/([0-9]+)/", $userInfo['chatsCount'], $matches);
-            $userInfo['chatsCount']  = trim($matches[1][0]);
-            $elements                = $html->get(".user-block")->toArray();
-            $userInfo['confirmed']   = !empty($elements[3]['h5'][0]['span'][0]['#text']) && strtolower($elements[3]['h5'][0]['span'][0]['#text']) == "confirmed" ? 1 : 0;
             curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . '/user/edit?user_id=' . $userInfo['id']);
             curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
             $out      = curl_exec($this->ch);
@@ -163,8 +119,10 @@ class UserInfo
                 curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($arr));
                 $out = curl_exec($this->ch);
             }
-            $this->saveSyncUser($userInfo);
-        }
+            if(!empty($userInfo['id'])) {
+                $this->saveSyncUser($userInfo);
+            }
+
         return $userInfo;
     }
     
@@ -368,29 +326,31 @@ class UserInfo
             }
             if ($getUserByIdQuery->rowCount() > 0) {
                 $row                 = $getUserByIdQuery->fetch(PDO::FETCH_ASSOC);
-                $user['active']      = $row['active'];
-                $user['password']    = $row['password'];
-                $user['login']       = $row['login'];
-                $user['orientation'] = $row['orientation'];
-                $user['site']        = $row['site'];
-                $user['country']     = $row['country'];
-                $user['mail']        = $row['mail'];
-                $user['gender']      = $row['gender'];
-                $user['register']    = $row['reg_time'];
-                $user['birthday']    = $row['birthday'];
-                $user['age']         = date('Y') - date('Y', (int)strtotime($row['birthday']));
-                $user['id']          = $row['id'];
-                $user['ll']          = $row['ll'];
-                $user['key']         = $row['key'];
-                $user['chatsCount'] = $row['chats'];
-                $user['searchable']  = $row['searchable'];
-                $user['confirmed']   = $row['confirmed'];
-                $user['platform']    = $row['platform'];
-                $user['fname']       = $row['fname'];
-                $user['lname']       = $row['lname'];
-                $user['traffic']     = $row['traffic'];
-                $user['siteId']     = $row['site_id'];
-                $user['location']    = $row['location'];
+                $user = array(
+                    'active'      => $row['active'],
+                    'password'    => $row['password'],
+                    'login'       => $row['login'],
+                    'orientation' => $row['orientation'],
+                    'site'        => $row['site'],
+                    'country'     => $row['country'],
+                    'mail'        => $row['mail'],
+                    'gender'      => $row['gender'],
+                    'register'    => $row['reg_time'],
+                    'birthday'    => $row['birthday'],
+                    'age'         => date('Y') - date('Y', (int)strtotime($row['birthday'])),
+                    'id'          => $row['id'],
+                    'll'          => $row['ll'],
+                    'key'         => $row['key'],
+                    'chatsCount'  => $row['chats'],
+                    'searchable'  => $row['searchable'],
+                    'confirmed'   => $row['confirmed'],
+                    'platform'    => $row['platform'],
+                    'fname'       => $row['fname'],
+                    'lname'       => $row['lname'],
+                    'traffic'     => $row['traffic'],
+                    'siteId'      => $row['site_id'],
+                    'location'    => $row['location'],
+                );
                 return $user;
             } else {
                 return false;
@@ -543,20 +503,22 @@ class UserInfo
         if ($getUserByTaskIdQuery->rowCount() > 0) {
             $i = 0;
             while ($row = $getUserByTaskIdQuery->fetch()) {
-                $users[$i]['site']        = $row['site'];
-                $users[$i]['country']     = $row['country'];
-                $users[$i]['mail']        = $row['mail'];
-                $users[$i]['gender']      = $row['gender'];
-                $users[$i]['register']    = $row['reg_time'];
-                $users[$i]['birthday']    = $row['birthday'];
-                $users[$i]['age']         = date('Y') - date('Y', strtotime($row['birthday']));
-                $users[$i]['id']          = $row['id'];
-                $users[$i]['ll']          = $row['ll'];
-                $users[$i]['key']         = $row['key'];
-                $users[$i]['chatsCount'] = $row['chats'];
-                $users[$i]['searchable']  = $row['searchable'];
-                $users[$i]['confirmed']   = $row['confirmed'];
-                $users[$i]['platform']    = $row['platform'];
+                $users[$i] = array(
+                    'site'        => $row['site'],
+                    'country'     => $row['country'],
+                    'mail'        => $row['mail'],
+                    'gender'      => $row['gender'],
+                    'register'    => $row['reg_time'],
+                    'birthday'    => $row['birthday'],
+                    'age'         => date('Y') - date('Y', strtotime($row['birthday'])),
+                    'id'          => $row['id'],
+                    'll'          => $row['ll'],
+                    'key'         => $row['key'],
+                    'chatsCount'  => $row['chats'],
+                    'searchable'  => $row['searchable'],
+                    'confirmed'   => $row['confirmed'],
+                    'platform'    => $row['platform'],
+                );
                 $i++;
             }
             return $users;
@@ -573,7 +535,7 @@ class UserInfo
                     `task_id` 
                 FROM
                     `profile`
-                WHERE `task_id` IS NOT NULL ORDER BY `task_id` DESC LIMIT 10
+                WHERE `task_id` IS NOT NULL ORDER BY `task_id` DESC LIMIT 50
                 ;");
             $getTasksListQuery->execute();
         }
@@ -754,20 +716,22 @@ class UserInfo
         }
         if ($usedEmailQuery->rowCount() > 0) {
             while ($row = $usedEmailQuery->fetch()) {
-                $proxy[$row['country']]['id'] = $row['id'];
-                $proxy[$row['country']]['ipAddress'] = $row['ip_address'];
-                $proxy[$row['country']]['countryCode'] = $row['country_code'];
-                $proxy[$row['country']]['countryName'] = $row['country_name'];
-                $proxy[$row['country']]['regionName'] = $row['region_name'];
-                $proxy[$row['country']]['cityName'] = $row['city_name'];
-                $proxy[$row['country']]['zipCode'] = $row['zip_code'];
-                $proxy[$row['country']]['latitude'] = $row['latitude'];
-                $proxy[$row['country']]['longitude'] = $row['longitude'];
-                $proxy[$row['country']]['timeShift'] = $row['time_zone'];
-                $proxy[$row['country']]['domain'] = $row['domain'];
-                $proxy[$row['country']]['port'] = $row['port'];
-                $proxy[$row['country']]['enable'] = $row['enable'];
-                $proxy[$row['country']]['country'] = $row['country'];
+                $proxy[$row['country']] = array(
+                        'id'            => $row['id'],
+                        'ipAddress'     => $row['ip_address'],
+                        'countryCode'   => $row['country_code'],
+                        'countryName'   => $row['country_name'],
+                        'regionName'    => $row['region_name'],
+                        'cityName'      => $row['city_name'],
+                        'zipCode'       => $row['zip_code'],
+                        'latitude'      => $row['latitude'],
+                        'longitude'     => $row['longitude'],
+                        'timeShift'     => $row['time_zone'],
+                        'domain'        => $row['domain'],
+                        'port'          => $row['port'],
+                        'enable'        => $row['enable'],
+                        'country'       => $row['country'],
+                );
             }
             return $proxy;
         } else {
@@ -885,77 +849,80 @@ class UserInfo
     
     function saveSyncUser($userInfo)
     {
-
         if (isset($userInfo)) {
-            if ($userInfo['mail'] != 'adghcvnhtg@outlook.com' || $userInfo['mail'] != '') {
+            if ($userInfo['mail'] != 'adghcvnhtg@outlook.com') {
                 try {
-                    $insertUserInfoQuery = $this->db->prepare("
-          INSERT INTO 
-            `profile` (
-                `id`,
-                `mail`,
-                `login`,
-                `password`,
-                `key`,
-                `site_id`,
-                `gender`,
-                `orientation`,
-                `fname`,
-                `lname`,
-                `country`,
-                `birthday`,
-                `reg_time`,
-                `active`,
-                `traffic`,
-                `platform`,
-                `ll`,
-                `chats`,
-                `searchable`,
-                `confirmed`
-            )
-          VALUES (
-                :id,
-                :mail,
-                :login,
-                :password,
-                :key,
-                :siteId,
-                :gender,
-                :orientation,
-                :fname,
-                :lname,
-                :country,
-                :birthday,
-                :regTime,
-                :active,
-                :traffic,
-                :platform,
-                :ll,
-                :chatsCount,
-                :searchable,
-                :confirmed
-          )
-          ON DUPLICATE KEY UPDATE            
-                `mail` = :mail2,
-                `login` = :login2,
-                `password` = :password2,
-                `key` = :key2,
-                `site_id` = :siteId2,
-                `gender` = :gender2,
-                `orientation` = :orientation2,
-                `fname` = :fname2,
-                `lname` = :lname2,
-                `country` = :country2,
-                `birthday` = :birthday2,
-                `reg_time` = :regTime2,
-                `active` = :active2,
-                `traffic` = :traffic2,
-                `platform` = :platform2,
-                `ll` = :ll2,
-                `chats` = :chatsCount2,
-                `searchable` = :searchable2,
-                `confirmed` = :confirmed2
-          ;");
+                        $insertUserInfoQuery = $this->db->prepare("
+                            INSERT INTO 
+                                `profile` (
+                                    `id`,
+                                    `mail`,
+                                    `login`,
+                                    `password`,
+                                    `key`,
+                                    `site_id`,
+                                    `gender`,
+                                    `orientation`,
+                                    `fname`,
+                                    `lname`,
+                                    `country`,
+                                    `birthday`,
+                                    `reg_time`,
+                                    `first_login`,
+                                    `active`,
+                                    `traffic`,
+                                    `platform`,
+                                    `ll`,
+                                    `searchable`,
+                                    `confirmed`,
+                                    `test`
+                                )
+                                VALUES (
+                                    :id,
+                                    :mail,
+                                    :login,
+                                    :password,
+                                    :key,
+                                    :siteId,
+                                    :gender,
+                                    :orientation,
+                                    :fname,
+                                    :lname,
+                                    :country,
+                                    :birthday,
+                                    :regTime,
+                                    :firstLogin,
+                                    :active,
+                                    :traffic,
+                                    :platform,
+                                    :ll,
+                                    :searchable,
+                                    :confirmed,
+                                    1
+                                )
+                            ON DUPLICATE KEY UPDATE            
+                                `mail` = :mail2,
+                                `login` = :login2,
+                                `password` = :password2,
+                                `key` = :key2,
+                                `site_id` = :siteId2,
+                                `gender` = :gender2,
+                                `orientation` = :orientation2,
+                                `fname` = :fname2,
+                                `lname` = :lname2,
+                                `country` = :country2,
+                                `birthday` = :birthday2,
+                                `reg_time` = :regTime2,
+                                `first_login` = :firstLogin2,
+                                `active` = :active2,
+                                `traffic` = :traffic2,
+                                `platform` = :platform2,
+                                `ll` = :ll2,
+                                `searchable` = :searchable2,
+                                `confirmed` = :confirmed2,
+                                `test` = 1
+                          ;");
+
                     foreach ($userInfo as $key => $item) {
                         if ($key != 'id') {
                             $this->bindMultiple($insertUserInfoQuery, array(
@@ -1012,14 +979,17 @@ class UserInfo
         }
         
         if ($getSitesConfigQuery->rowCount() > 0) {
+            $sitesConfig = array();
             while ($row = $getSitesConfigQuery->fetch()) {
-                $sitesConfig[$row['site_id']]['live']         = $row['site_url'];
-                $sitesConfig[$row['site_id']]['site_name']    = $row['site_name'];
-                $sitesConfig[$row['site_id']]['site_id']    = $row['site_id'];
-                $sitesConfig[$row['site_id']]['domain']       = $row['site_domain'];
-                $sitesConfig[$row['site_id']]['company_name'] = $row['company_name'];
-                $sitesConfig[$row['site_id']]['locale']       = $row['locale'];
-                $sitesConfig[$row['site_id']]['dictionaryId']       = $row['dictionary_id'];
+                $sitesConfig[$row['site_id']] = array(
+                        'live'          => $row['site_url'],
+                        'site_name'     => $row['site_name'],
+                        'site_id'       => $row['site_id'],
+                        'domain'        => $row['site_domain'],
+                        'company_name'  => $row['company_name'],
+                        'locale'        => $row['locale'],
+                        'dictionaryId'  => $row['dictionary_id'],
+                );
             }
             
             return $sitesConfig;
@@ -1073,7 +1043,8 @@ class UserInfo
                     `profile`.`platform`,
                     `profile`.`ll`,
                     `profile`.`chats`,
-                    `profile`.`site_id`
+                    `profile`.`site_id`,
+                    `profile`.`searchable`
                 FROM
                     `profile`
                 INNER JOIN 
@@ -1098,27 +1069,30 @@ class UserInfo
                 $i = 0;
                 
                 while ($row = $findByEmailQuery->fetch()) {
-                    $answer['data'][$i]['site']        = $row['site'];
-                    $answer['data'][$i]['gender']      = $row['gender'];
-                    $answer['data'][$i]['country']     = $row['country'];
-                    $answer['data'][$i]['key']         = $row['key'];
-                    $answer['data'][$i]['regTime']    = $row['reg_time'];
-                    $answer['data'][$i]['id']          = $row['id'];
-                    $answer['data'][$i]['email']       = $row['mail'];
-                    $answer['data'][$i]['password']    = $row['password'];
-                    $answer['data'][$i]['traffic']     = $row['traffic'];
-                    $answer['data'][$i]['login']       = $row['login'];
-                    $answer['data'][$i]['orientation'] = $row['orientation'];
-                    $answer['data'][$i]['fname']       = $row['fname'];
-                    $answer['data'][$i]['lname']       = $row['lname'];
-                    $answer['data'][$i]['birthday']    = $row['birthday'];
-                    $answer['data'][$i]['active']      = $row['active'];
-                    $answer['data'][$i]['platform']    = $row['platform'];
-                    $answer['data'][$i]['ll']          = $row['ll'];
-                    $answer['data'][$i]['chatsCount'] = $row['chats'];
-                    $answer['data'][$i]['siteId']     = $row['site_id'];
-                    $answer['data'][$i]['siteDomain'] = $row['site_domain'];
-                    $answer['data'][$i]['splitGroup']  = hexdec(substr(md5($row['id']), 0, 4)) % 100;
+                    $answer['data'][$i] = array(
+                        'site'          => $row['site'],
+                        'gender'        => $row['gender'],
+                        'country'       => $row['country'],
+                        'key'           => $row['key'],
+                        'regTime'       => $row['reg_time'],
+                        'id'            => $row['id'],
+                        'email'         => $row['mail'],
+                        'password'      => $row['password'],
+                        'traffic'       => $row['traffic'],
+                        'login'         => $row['login'],
+                        'orientation'   => $row['orientation'],
+                        'fname'         => $row['fname'],
+                        'lname'         => $row['lname'],
+                        'birthday'      => $row['birthday'],
+                        'active'        => $row['active'],
+                        'platform'      => $row['platform'],
+                        'll'            => $row['ll'],
+                        'chatsCount'    => $row['chats'],
+                        'siteId'        => $row['site_id'],
+                        'siteDomain'    => $row['site_domain'],
+                        'searchable'    => $row['searchable'],
+                        'splitGroup'    => hexdec(substr(md5($row['id']), 0, 4)) % 100,
+                    );
                     $i++;
                 }
                 return $answer;
@@ -1181,27 +1155,29 @@ class UserInfo
                 $i = 0;
                 
                 while ($row = $findByIdQuery->fetch()) {
-                    $answer['data'][$i]['site']        = $row['site'];
-                    $answer['data'][$i]['gender']      = $row['gender'];
-                    $answer['data'][$i]['country']     = $row['country'];
-                    $answer['data'][$i]['key']         = $row['key'];
-                    $answer['data'][$i]['regTime']    = $row['reg_time'];
-                    $answer['data'][$i]['id']          = $row['id'];
-                    $answer['data'][$i]['email']       = $row['mail'];
-                    $answer['data'][$i]['password']    = $row['password'];
-                    $answer['data'][$i]['traffic']     = $row['traffic'];
-                    $answer['data'][$i]['login']       = $row['login'];
-                    $answer['data'][$i]['orientation'] = $row['orientation'];
-                    $answer['data'][$i]['fname']       = $row['fname'];
-                    $answer['data'][$i]['lname']       = $row['lname'];
-                    $answer['data'][$i]['birthday']    = $row['birthday'];
-                    $answer['data'][$i]['active']      = $row['active'];
-                    $answer['data'][$i]['platform']    = $row['platform'];
-                    $answer['data'][$i]['ll']          = $row['ll'];
-                    $answer['data'][$i]['chatsCount'] = $row['chats'];
-                    $answer['data'][$i]['searchable']  = $row['searchable'];
-                    $answer['data'][$i]['confirmed']   = $row['confirmed'];
-                    $answer['data'][$i]['siteId']     = $row['site_id'];
+                    $answer['data'][$i] = array(
+                        'site'          => $row['site'],
+                        'gender'        => $row['gender'],
+                        'country'       => $row['country'],
+                        'key'           => $row['key'],
+                        'regTime'       => $row['reg_time'],
+                        'id'            => $row['id'],
+                        'email'         => $row['mail'],
+                        'password'      => $row['password'],
+                        'traffic'       => $row['traffic'],
+                        'login'         => $row['login'],
+                        'orientation'   => $row['orientation'],
+                        'fname'         => $row['fname'],
+                        'lname'         => $row['lname'],
+                        'birthday'      => $row['birthday'],
+                        'active'        => $row['active'],
+                        'platform'      => $row['platform'],
+                        'll'            => $row['ll'],
+                        'chatsCount'    => $row['chats'],
+                        'searchable'    => $row['searchable'],
+                        'confirmed'     => $row['confirmed'],
+                        'siteId'        => $row['site_id'],
+                    );
                     $i++;
                 }
                 return $answer;
@@ -1234,314 +1210,4 @@ class UserInfo
             return false;
         }
     }
-            /*
-        try {
-
-            $valueString = substr($valueString, 0, -2);
-            $saveTaskConfigQuery = $this->db->prepare("
-            INSERT INTO 
-                `task_config`(
-                    `task_id`,
-                    `country`,
-                    `site_id`,
-                    `count`,
-                    `device`,
-                    `gender`,
-                    `referer`,
-                    `email`,
-                    `age`
-                ) 
-            VALUES $valuesString 
-      ;");
-            $saveTaskConfigQuery->bindValue(':email', $userInfo);
-            
-            $saveTaskConfigQuery->execute();
-            return true;
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
-            return false;
-        }
-    
-    }
-    */
-    /*--- not actual
-    
-    
-
-    
-    function getUsersForSync($dc)
-    {
-        try {
-            $usedEmailQuery = $this->db->query("
-        SELECT 
-          `email`
-        FROM
-          `temp_profiles`
-        LIMIT 25
-        ;");
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
-        }
-        if ($usedEmailQuery->rowCount() > 0) {
-            
-            while ($row = $usedEmailQuery->fetch()) {
-                $users[] = $row['email'];
-            }
-            return $users;
-        } else {
-            return false;
-        }
-        
-    }
-    
-    function getUsersForUpdate()
-    {
-        $date = date('Y-m-d H:i:s', strtotime('-12 hours'));
-        try {
-            $usedEmailForUpdQuery = $this->db->prepare("
-        SELECT 
-          DISTINCT `mail`
-        FROM
-          `profile`
-    WHERE `location` is NULL
-        LIMIT 50       
-        ;");
-            
-            $usedEmailForUpdQuery->execute();
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('PDOErrors.txt', $e->getMessage(), FILE_APPEND);
-        }
-        
-        if ($usedEmailForUpdQuery->rowCount() > 0) {
-            while ($row = $usedEmailForUpdQuery->fetch()) {
-                $users[] = $row['mail'];
-            }
-            return $users;
-        } else {
-            return false;
-        }
-    }
-    
-    function getUsersForSyncDate($dc)
-    {
-        try {
-            $usedEmailQuery = $this->db->prepare("
-        SELECT 
-          `id`
-        FROM
-          `profile`
-        WHERE
-          `dc` = :dc
-          AND
-          `reg_time` = '0000-00-00 00:00:00'
-
-        ;");
-            $usedEmailQuery->bindValue(':dc', $dc);
-            $usedEmailQuery->execute();
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('PDOErrors.txt', $e->getMessage(), FILE_APPEND);
-        }
-        if ($usedEmailQuery->rowCount() > 0) {
-            while ($row = $usedEmailQuery->fetch()) {
-                $users[] = $row['id'];
-            }
-            return $users;
-        } else {
-            return false;
-        }
-    }
-    
-    function getCreateriaList($createria)
-    {
-        try {
-            $listQuery = $this->db->prepare("
-      SELECT 
-        DISTINCT $createria
-      FROM
-        `profile`
-      ORDER BY $createria ASC
-      ;");
-            $listQuery->execute();
-            $list = array();
-            while ($row = $listQuery->fetch()) {
-                $list[] = $row[$createria];
-            }
-            return $list;
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage() . '\r\n';
-            file_put_contents('PDOErrors.txt', $e->getMessage() . '\r\n', FILE_APPEND);
-            return false;
-        }
-    }
-    
-    function syncDates($userId, $site, $config)
-    {
-        
-        $this->setDc($config);
-        $this->adminLogin();
-        
-        curl_setopt($this->ch, CURLOPT_URL, "https://www." . $this->mainSite . ".com/profiles/search.php?pid=" . $userId . "&site" . $this->siteConf[$site]['id']);
-        curl_setopt($this->ch, CURLOPT_COOKIEJAR, 'cookie.txt');
-        curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'cookie.txt');
-        curl_setopt($this->ch, CURLOPT_POST, true);
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, "pid=" . $userId . "&chk=&action=ajax_profile_details");
-        curl_setopt($this->ch, CURLOPT_HTTPHEADER, array(
-            'X-Requested-With: XMLHttpRequest'
-        ));
-        
-        $out = curl_exec($this->ch);
-        curl_close($this->ch);
-        $html     = new nokogiri($out);
-        $elements = $html->get("tr")->toArray();
-        
-        $reg_str = implode('|', $elements[2]['td'][2]['table'][0]['tr'][4]['td'][3]);
-        preg_match("/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/i", $reg_str, $matches);
-        $reg = $matches[0];
-        
-        $conf_str = implode('|', $elements[2]['td'][2]['table'][0]['tr'][5]['td'][3]);
-        preg_match("/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/i", $conf_str, $matches);
-        $conf = $matches[0];
-        
-        $traff_str = implode('|', $elements[2]['td'][2]['table'][0]['tr'][6]['td'][3]);
-        preg_match("/([\-a-zA-Z]*)/i", $traff_str, $matches);
-        $traff = $matches[0];
-        try {
-            $dcSyncedUpdateQuery = $this->db->prepare("
-          UPDATE 
-            `profile` 
-          SET 
-            `reg_time` = :regTime,
-            `conf_time` = :confTime, 
-            `traffic` = :traffic,
-            `last_sync` = NOW()
-          WHERE 
-            `id` = :id
-        ;");
-            
-            $dcSyncedUpdateQuery->bindParam(':id', $userId);
-            $dcSyncedUpdateQuery->bindParam(':regTime', $reg);
-            $dcSyncedUpdateQuery->bindParam(':confTime', $conf);
-            $dcSyncedUpdateQuery->bindParam(':traffic', $traff);
-            
-            $dcSyncedUpdateQuery->execute();
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('PDOErrors.txt', $e->getMessage(), FILE_APPEND);
-        }
-        
-    }
-    
-    function findByCreaterias($createrias, $sort_by = 'reg_time', $sort = 'DESC', $page = 1)
-    {
-        $createriasText = $createrias;
-        $createriasText .= " ORDER BY `" . $sort_by . "` " . $sort;
-        try {
-            $count = 20;
-            
-            $limitTo   = $page * $count;
-            $limitFrom = $limitTo - $count;
-            
-            $findByCreateriaCount = $this->db->prepare("
-        SELECT
-          count(*)
-        FROM
-          `profile`
-        $createriasText
-      ;");
-            $findByCreateriaCount->execute();
-            $count_result = $findByCreateriaCount->fetch();
-            
-            $findByCreateriaQuery = $this->db->prepare("
-        SELECT           
-                `id`,
-                `mail`,
-                `login`,
-                `password`,
-                `key`,
-                `sites_config`.`site_name` as site,
-                `gender`,
-                `orientation`,
-                `fname`,
-                `lname`,
-                `country`,
-                `birthday`,
-                `reg_time`,
-                `active`,
-                `traffic`,
-                `platform`,
-                `ll`,
-                `chats`,
-                `site_id`
-        FROM
-          `profile`
-        JOIN 
-            `sites_config`
-        ON
-            `profile`.`site_id` = `sites_config`.`site_id`
-        $createriasText
-        LIMIT $limitFrom, $limitTo
-        ;");
-            
-            $findByCreateriaQuery->execute();
-        }
-        catch (PDOException $e) {
-            echo $e->getMessage();
-            file_put_contents('PDOErrors.txt', $e->getMessage() . '\r\n', FILE_APPEND);
-            return false;
-        }
-        
-        if ($findByCreateriaQuery->columnCount() > 0) {
-            $i = 0;
-            while ($row = $findByCreateriaQuery->fetch()) {
-                $answer['data'][$i]['site']        = $row['site'];
-                $answer['data'][$i]['gender']      = $row['gender'];
-                $answer['data'][$i]['country']     = $row['country'];
-                $answer['data'][$i]['key']         = $row['key'];
-                $answer['data'][$i]['regTime']    = $row['reg_time'];
-                $answer['data'][$i]['id']          = $row['id'];
-                $answer['data'][$i]['mail']        = $row['mail'];
-                $answer['data'][$i]['password']    = $row['password'];
-                $answer['data'][$i]['traffic']     = $row['traffic'];
-                $answer['data'][$i]['login']       = $row['login'];
-                $answer['data'][$i]['orientation'] = $row['orientation'];
-                $answer['data'][$i]['fname']       = $row['fname'];
-                $answer['data'][$i]['lname']       = $row['lname'];
-                $answer['data'][$i]['birthday']    = $row['birthday'];
-                $answer['data'][$i]['active']      = $row['active'];
-                $answer['data'][$i]['platform']    = $row['platform'];
-                $answer['data'][$i]['ll']          = $row['ll'];
-                $answer['data'][$i]['chatsCount'] = $row['chats'];
-                $answer['data'][$i]['siteId']     = $row['site_id'];
-                $i++;
-            }
-            $answer['count']        = $count_result[0];
-            $answer['sites']        = $sites;
-            $answer['sortElement'] = $sort_by;
-            $answer['sort']         = $sort;
-            return $answer;
-        } else {
-            unset($STH);
-            return false;
-        }
-    }
-    
-
-    
-
-
-    
-
-    
-    */
 }

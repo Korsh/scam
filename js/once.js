@@ -91,6 +91,7 @@ var old_value;
         var count = $('#count').val();
         var device = $('#device').val();
         var referer = $('#referer').val();
+        var paid = $('#paid').is(':checked') == 1 ? 1 : 0;
         var time_count = 0;
         if(email != '' && age != '' && gender != '' && country != '' &&
         site != '' && count != '' && device != '') {
@@ -121,7 +122,9 @@ var old_value;
                                 +'<td>'+curr_gender+'</td>'
                                 +'<td>'+curr_device+'</td>'
                                 +'<td>'+referer+'</td>'
-                                +'</td>');
+                                +'<td>'+paid+'</td>'
+                                +'</td>'
+                                +'</tr>');
                                 $.post(
                                     "/once/", 
                                     {
@@ -135,6 +138,7 @@ var old_value;
                                         country : curr_country,
                                         site : curr_site,
                                         device : curr_device,
+                                        paid : paid,
                                         referer : referer
                                     },
                                     function(response)
@@ -143,6 +147,7 @@ var old_value;
                                         if(answer.result) {
                                             $('#'+answer.request_id+'>td')[0].innerHTML = 'success';
                                             $('#'+answer.request_id+'>td')[1].innerHTML = answer.data[0].email;
+                                            $('#'+answer.request_id).append('<td>'+answer.data[0].searchable+'</td>');
                                             $('#'+answer.request_id).append('<td>'+answer.data[0].id+'</td>');
                                             $('#'+answer.request_id).append('<td><a href="https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'" target="_blank">https://'+answer.data[0].siteDomain+'/site/autologin/key/'+answer.data[0].key+'</a></td>');
                                             $('#'+answer.request_id).append('<td>'+answer.data[0].splitGroup+'</td>');

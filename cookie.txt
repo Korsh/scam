@@ -4,4 +4,7 @@
 
 my.ufins.com	FALSE	/	FALSE	0	PHPSESSID	fchrjj2oucnb3hdsupti9o9bi2
 .my.ufins.com	TRUE	/	FALSE	1737804504	_uuid	54c8c7d8294110.77025443
+my.platformphoenix.com	FALSE	/	FALSE	0	PHPSESSID	7o27ndp97pv1ooag95865004u2
+.my.platformphoenix.com	TRUE	/	FALSE	1755861060	_uuid	55dc4d44523820.42747900
 my.ufins.com	FALSE	/	FALSE	0	locale	ru
+my.platformphoenix.com	FALSE	/	FALSE	0	locale	ru

@@ -25,7 +25,7 @@ body, table {
     cursor: pointer;
 }
 
-table, td, tr {
+table, td, tr, th {
     border: 1px solid black;
 }
 
