@@ -102,6 +102,11 @@ if (isset($_REQUEST['ajax'])) {
             $script                 = "scriptsJS/confirmUser.js";
             $site = $response['data'][0]['siteDomain'];
             $autologin              = $response['data'][0]['siteDomain'] . '/site/autologin/key/' . $response['data'][0]['key'];
+            if(isset($_GET['debug']) || $debug) {
+                echo $autologin.'<br>';
+                echo "libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site $payFor $device $request_id";
+                exit;
+            }
             $output                 = shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site $payFor $device $request_id");
             $ui->saveUserTask($task_id, $response['data'][0]['key']);
             $ui->syncUserInfo($email, $adminConf[0]);

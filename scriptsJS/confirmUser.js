@@ -18,9 +18,18 @@
     var cpfValue = '08077385575';
     var cardAddress = 'Beverly Hills,123';
     var cardZip = '90210';    
+    var alphabet = ["a","b","c","d","e","f","g","h","i","k","l","m","n","o","p","q","r","s","t","v","x","y","z"];
+
     page = new WebPage(), testindex = 0, loadInProgress = false;
     page.viewportSize = { width: 1024, height: 768 };
-   
+    var screenname_adding = date.getTime().toString().slice(-5);
+    var screenname = '';
+    for(i=0; i<getRandomArbitary(3, 7);i++)
+    {
+      screenname += alphabet[getRandomArbitary(0,22)];
+    }
+    var screenname = screenname+screenname_adding;
+    
 switch (device) {
     case "Nexus":
         userAgent = "Mozilla/5.0 (Linux; U; Android 4.2; en-us; Nexus 4 Build/JOP24G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30";
@@ -57,6 +66,7 @@ page.onError = function (msg, trace) {
 };
 
     page.onConsoleMessage = function(msg) {
+    console.log(msg);
     };  
     page.onLoadStarted = function() {
         loadInProgress = true;
@@ -72,125 +82,130 @@ page.onError = function (msg, trace) {
     });
     var steps = [
         function() {
-            page.open('https://'+platform+'.'+site+'/admin2/', function(status) {
-            });
-
-            phantom.addCookie({
-                'name': 'ip_address',
-                'value': ip,
-                'domain': platform+'.'+site
-            });
-        },
-        function() {
-            page.open('https://'+platform+'.'+site, function(status) {
-            });
-        },
-        function() {
+            console.log('https://'+platform+'.'+autologin);
             page.open('https://'+platform+'.'+autologin, function(status) {
+                console.log(status);
             });
         },
         function() {
-            page.open('/funnel');
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom, screenname) {
+                if(document.location.pathname == '/funnel')
+                {
+                    $('#funnelScreenname').val(screenname);
+                    
+
+                }
+            }, phantom, screenname);
+        },
+        function() {
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom) {
+                if(document.location.pathname == '/funnel') {
+                    $('#FunnelForm').submit();
+                }
+            }, phantom);
         },
         function() {
             if(payFor) {
                 page.open('https://'+platform+'.'+site+'/pay/membership', function(status) {
-            });
+                });
             }            
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor) {
-                if(payFor) {
+            if(payFor) {
+                page.evaluate(function(phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor) {
                     $('#continueButton').click();
-                }
-                page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
-            }, phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor);
+                    page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
+                }, phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor);
+            }
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor) {
-                if(payFor) {
-                    cardFull = cardNumber[0]+cardNumber[1]+cardNumber[2]+cardNumber[3];
-                  if(document.getElementById('CreditCardPaymentForm_card_number')) {
-                      setInputValue(document.getElementById('CreditCardPaymentForm_card_number'), cardFull);
-                  }
-                  if(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children[0].children.length > 1) {
-                    for(i=0;i<4;i++) {
-                        
-                        setInputValue(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children[0].children[i], cardNumber[i]);
+            if(payFor) {
+                page.evaluate(function(phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor) {
+                        cardFull = cardNumber[0]+cardNumber[1]+cardNumber[2]+cardNumber[3];
+                      if(document.getElementById('CreditCardPaymentForm_card_number')) {
+                          setInputValue(document.getElementById('CreditCardPaymentForm_card_number'), cardFull);
+                      }
+                      if(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children[0].children.length > 1) {
+                        for(i=0;i<4;i++) {
+                            
+                            setInputValue(document.getElementById('CreditCardPaymentForm_card_number').parentElement.children[0].children[i], cardNumber[i]);
+                        }
+                      }
+
+                        if(document.getElementById('CreditCardPaymentForm_cpf'))setInputValue(document.getElementById('CreditCardPaymentForm_cpf'), cpfValue);
+                        if(document.getElementById('CreditCardPaymentForm_expiration_date_m')){
+                            setInputValue(document.getElementById('CreditCardPaymentForm_expiration_date_m'), cardMonth);
+                            document.getElementById('CreditCardPaymentForm_expiration_date_m').parentNode.getElementsByTagName('span')[0].innerHTML = cardMonth;
+                        }
+
+                      if(document.getElementById('CreditCardPaymentForm_expiration_date_y')){
+                        setInputValue(document.getElementById('CreditCardPaymentForm_expiration_date_y'), cardYear);
+                        document.getElementById('CreditCardPaymentForm_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = cardYear;
+                      }
+
+                      if(document.getElementById('CreditCardPaymentForm_card_holder'))setInputValue(document.getElementById('CreditCardPaymentForm_card_holder'), cardNameFirst+' '+cardNameLast);
+
+                      if(document.getElementById('CreditCardPaymentForm_security_number'))setInputValue(document.getElementById('CreditCardPaymentForm_security_number'), cardCV2);
+
+                      if(document.getElementById('CreditCardPaymentForm_name_first'))setInputValue(document.getElementById('CreditCardPaymentForm_name_first'), cardNameFirst);
+
+                      if(document.getElementById('CreditCardPaymentForm_name_last'))setInputValue(document.getElementById('CreditCardPaymentForm_name_last'), cardNameLast);
+                      if(document.getElementById('CreditCardPaymentForm_address'))setInputValue(document.getElementById('CreditCardPaymentForm_address'), cardNameLast);
+
+                      if(document.getElementById('CreditCardPaymentForm_city'))setInputValue(document.getElementById('CreditCardPaymentForm_city'), cardAddress);
+
+                      if(document.getElementById('CreditCardPaymentForm_postal_code'))setInputValue(document.getElementById('CreditCardPaymentForm_postal_code'), cardZip);
+
+
+                        document.getElementById('CreditCardPaymentForm_card_holder').click();
+
+                    function setInputValue(element, value){
+                      if(element.type == 'select-one'){
+                        var options = element.options;
+                         for (var i = 0; i < options.length; i++) {
+                           if(value == false){
+                             if(i == options.length-1){
+                               options[i].selected = true;
+                             }
+                             else{
+                               options[i].selected = false;
+                             }
+                           }
+                           else{
+                             if(options[i].getAttribute('value') == value){
+                               options[i].selected = true;
+                               break;
+                             }
+                             else if(options[i].getAttribute('value') >= value){
+                               options[i].selected = true;
+                             }
+                             else{
+                               options[i].selected = false;
+                             }
+                           }
+
+                         }
+                      }
+                      else {
+                        element.value = value;
+                      }
                     }
-                  }
-
-                    if(document.getElementById('CreditCardPaymentForm_cpf'))setInputValue(document.getElementById('CreditCardPaymentForm_cpf'), cpfValue);
-                    if(document.getElementById('CreditCardPaymentForm_expiration_date_m')){
-                        setInputValue(document.getElementById('CreditCardPaymentForm_expiration_date_m'), cardMonth);
-                        document.getElementById('CreditCardPaymentForm_expiration_date_m').parentNode.getElementsByTagName('span')[0].innerHTML = cardMonth;
-                    }
-
-                  if(document.getElementById('CreditCardPaymentForm_expiration_date_y')){
-                    setInputValue(document.getElementById('CreditCardPaymentForm_expiration_date_y'), cardYear);
-                    document.getElementById('CreditCardPaymentForm_expiration_date_y').parentNode.getElementsByTagName('span')[0].innerHTML = cardYear;
-                  }
-
-                  if(document.getElementById('CreditCardPaymentForm_card_holder'))setInputValue(document.getElementById('CreditCardPaymentForm_card_holder'), cardNameFirst+' '+cardNameLast);
-
-                  if(document.getElementById('CreditCardPaymentForm_security_number'))setInputValue(document.getElementById('CreditCardPaymentForm_security_number'), cardCV2);
-
-                  if(document.getElementById('CreditCardPaymentForm_name_first'))setInputValue(document.getElementById('CreditCardPaymentForm_name_first'), cardNameFirst);
-
-                  if(document.getElementById('CreditCardPaymentForm_name_last'))setInputValue(document.getElementById('CreditCardPaymentForm_name_last'), cardNameLast);
-                  if(document.getElementById('CreditCardPaymentForm_address'))setInputValue(document.getElementById('CreditCardPaymentForm_address'), cardNameLast);
-
-                  if(document.getElementById('CreditCardPaymentForm_city'))setInputValue(document.getElementById('CreditCardPaymentForm_city'), cardAddress);
-
-                  if(document.getElementById('CreditCardPaymentForm_postal_code'))setInputValue(document.getElementById('CreditCardPaymentForm_postal_code'), cardZip);
-
-
-                    document.getElementById('CreditCardPaymentForm_card_holder').click();
-                }
-                function setInputValue(element, value){
-                  if(element.type == 'select-one'){
-                    var options = element.options;
-                     for (var i = 0; i < options.length; i++) {
-                       if(value == false){
-                         if(i == options.length-1){
-                           options[i].selected = true;
-                         }
-                         else{
-                           options[i].selected = false;
-                         }
-                       }
-                       else{
-                         if(options[i].getAttribute('value') == value){
-                           options[i].selected = true;
-                           break;
-                         }
-                         else if(options[i].getAttribute('value') >= value){
-                           options[i].selected = true;
-                         }
-                         else{
-                           options[i].selected = false;
-                         }
-                       }
-
-                     }
-                  }
-                  else {
-                    element.value = value;
-                  }
-                }
-                page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
-            }, phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor);
+                    page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(testindex) + ").png");
+                }, phantom, cardNumber, cardMonth, cardYear, cardNameFirst, cardNameLast, cardCV2, cardAddress, cardZip, payFor);
+            }
         },
         function() {
-            page.evaluate(function(phantom, payFor, platform) {
-                if(payFor) {
+            if(payFor) {
+                page.evaluate(function(phantom, payFor, platform) {
                         $('#subscription').submit();
                         $('#creditCardPaymentForm').submit();
                     page.render('../screenshots/'+site+'/'+requestId+'/confirm_'+uniqueAdding+'('+page.url+'_'+(_testindex) + ").png");
-                }
-            }, phantom, payFor, platform);
+                }, phantom, payFor, platform);
+            }
         },
         function() {
             page.open('/site/logout');
@@ -215,3 +230,21 @@ function WriteToFile(msg, uniqueAdding, testindex) {
     s.writeline("-----------------------------");
     s.Close();
 }*/
+
+function getRandomArbitary(min, max)
+{
+    return parseInt(Math.random() * (max - min) + min);
+}
+
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
+
+function addZero(i) {
+    return (i < 10)? "0" + i: i;
+}

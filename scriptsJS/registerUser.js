@@ -82,35 +82,15 @@ phantom.onError = function(msg, trace) {
     phantom.addCookie({
         'name': 'ip_address',
         'value': ip,
-        'domain': 'https://www.'+site
+        'domain': platform+'.'+site
     });
     
     var steps = [
         function() {
-            page.open('https://'+platform+'.'+site+'/admin2/', function(status) {
-            });
-
-            phantom.addCookie({
-                'name': 'ip_address',
-                'value': ip,
-                'domain': platform+'.'+site
-            });
-        },
-        function() {
             page.open('https://'+platform+'.'+site+referer, function() {
             });
         },
-        /*function() {
-            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            if(platform == 'm' && document.getElementsByClassName('btn-update')[0].href)
-            {
-                mob_url = page.evaluate(function(page) {
-                    mob_url = document.getElementsByClassName('btn-update')[0].href;
-                    return mob_url;
-                }, page);
-                page.open(mob_url);
-            }
-        },*/
+
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom) {
@@ -123,7 +103,6 @@ phantom.onError = function(msg, trace) {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom, gender, orientation, year, month, day, email, password, city, screenname, debug) {
                 $('.btn--popup').click();
-                console.log(debug);
                 if(debug) console.log("$('.btn--popup').click();");
                 $('#UserForm_gender').val(gender).removeAttr('disabled');
                 $('#formRegGender').val(gender).removeAttr('disabled');
@@ -238,7 +217,6 @@ phantom.onError = function(msg, trace) {
                     $('#AgeVerificationPageModel_terms').click();
                     console.log(email);
                     $('#avp').submit();
-                    phantom.exit();
                 } else if(document.location.pathname == '/verify/ageVerificationPage')
                 {
                     card_number = 4012888888881881;
@@ -308,24 +286,33 @@ phantom.onError = function(msg, trace) {
                     $('#AgeVerificationPageModel_terms').click();
                     console.log(email);
                     $('#avp').submit();
-                    phantom.exit();
                 }
             }, phantom, email);
         },
-/*        function() {
-            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom) {
-                if (document.location.pathname == '/verify/ageVerificationPage' || document.location.pathname == '/verify/cardAuthorization') {
-                    
-                }
-            }, phantom);
-        },*/
-        
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom) {
                 if(document.location.pathname == '/pay/features') {
                     $('#subscription').submit();
+                }
+            }, phantom);
+        },
+        function() {
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom, screenname) {
+                if(document.location.pathname == '/funnel')
+                {
+                    $('#funnelScreenname').val(screenname);
+                    
+
+                }
+            }, phantom, screenname);
+        },
+        function() {
+            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
+            page.evaluate(function(phantom) {
+                if(document.location.pathname == '/funnel') {
+                    $('#FunnelForm').submit();
                 }
             }, phantom);
         },
