@@ -11,6 +11,8 @@ class UserActions
     private $location;
     private $country;
     var $ch;
+    var $authLogin;
+    var $authPass;
     private $adminCh;
     private $adminLogin;
     private $adminPass;
@@ -96,9 +98,10 @@ class UserActions
         return $this->location;
     }
     
-    function UserActions($DBH, $proxyConf)
+    function UserActions($DBH, $dc, $proxyConf)
     {
         $this->db         = $DBH;
+        $this->setDc($dc);
         $this->proxyConf = $proxyConf;
     }
     
@@ -188,32 +191,57 @@ class UserActions
         curl_exec($this->ch);
     }
     
-    public function adminLogin()
+    private function setDc($config)
     {
-        $this->adminCh = curl_init();
-        $postArr       = array(
+        $this->dc        = $config['dc'];
+        $this->mainSite = $config['site'];
+        $this->loginUrl = $config['loginUrl'];
+        $this->findUrl  = $config['findUrl'];
+        $this->type      = $config['type'];
+        $this->login     = $config['login'];
+        $this->pass      = $config['pass'];
+        $this->authLogin     = $config['authLogin'];
+        $this->authPass      = $config['authPass'];
+    }
+    
+    private function adminLogin()
+    {
+        if(empty($this->ch)) {
+        $this->ch = curl_init();
+        $postArr = array(
             "AdminLoginForm" => array(
-                "login" => $this->adminLogin,
-                "password" => $this->adminPass
+                "login" => $this->login,
+                "password" => $this->pass
             ),
             "YII_CSRF_TOKEN" => "",
             "yt0" => ""
         );
-        
-        curl_setopt($this->adminCh, CURLOPT_URL, "https://my.ufins.com/admin/base/login");
-        curl_setopt($this->adminCh, CURLOPT_COOKIEJAR, 'cookie.txt');
-        curl_setopt($this->adminCh, CURLOPT_COOKIEFILE, 'cookie.txt');
-        curl_setopt($this->adminCh, CURLOPT_VERBOSE, 1);
-        curl_setopt($this->adminCh, CURLOPT_POST, true);
-        curl_setopt($this->adminCh, CURLOPT_POSTFIELDS, http_build_query($postArr));
-        curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 0);
-        curl_exec($this->adminCh);
+        $headers = array('Authorization: Basic YW5kcmV5LmFyemhhbm92OkFub204QWx5ODk=');
+        curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . "/base");
+        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+        curl_setopt($this->ch, CURLOPT_COOKIEJAR, 'cookie.txt');
+        curl_setopt($this->ch, CURLOPT_HTTPHEADER,$headers);
+        curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'cookie.txt');
+        curl_setopt($this->ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($this->ch, CURLOPT_USERPWD, $this->authLogin . ":" . $this->authPass);
+        curl_setopt($this->ch, CURLOPT_VERBOSE, 1);
+        curl_setopt($this->ch, CURLOPT_UNRESTRICTED_AUTH, 1);
+        curl_setopt($this->ch, CURLOPT_POST, 1);
+        curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 1);
+        //curl_setopt($this->ch, CURLOPT_HEADER, 1);
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->ch, CURLOPT_AUTOREFERER, 1);
+        $out = curl_exec($this->ch);
+
+        }
     }
     
     public function getUserActivity($userId)
     {
         $this->adminLogin();
-        curl_setopt($this->adminCh, CURLOPT_URL, "https://my.ufins.com/user/chats?userId=" . $userId);
+
+        curl_setopt($this->adminCh, CURLOPT_URL, "https://".$this->mainSite."/user/chats?userId=" . $userId);
+
         curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 1);
         $out  = curl_exec($this->adminCh);
         $html = new nokogiri($out);
@@ -231,11 +259,11 @@ class UserActions
             }
             $k = 0;
             for ($y = 1; $y <= $pages; $y++) {
-                curl_setopt($this->adminCh, CURLOPT_URL, "https://my.ufins.com/user/chats?userId=" . $userId . "&page=" . $y);
+                curl_setopt($this->adminCh, CURLOPT_URL, "https://".$this->mainSite."/user/chats?userId=" . $userId . "&page=" . $y);
                 curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 1);
                 $out  = curl_exec($this->adminCh);
                 $html = new nokogiri($out);
-                
+
                 $elements = $html->get(".grid-view")->toArray();
                 $element = $elements[0]['table'][0]['tbody'][0]['tr'];
                 for ($i = 0; $i < sizeof($element); $i++) {
@@ -273,7 +301,8 @@ class UserActions
                         `address`,
                         `address_ll`,
                         `screenname`,
-                        `message`
+                        `message`,
+                        `traffic
                     FROM
                         `chats`
                     WHERE 
@@ -282,8 +311,10 @@ class UserActions
                         `send_time` > :start_date 
                     AND 
                         `send_time` < :end_date 
-                    AND
-                        `is_99` != 0
+                    AND 
+                        `traffic` 
+                    IN
+                        ('Cams models', 'Unparsed')
                     ORDER BY `send_time` ASC
                     ;");
                 $getChatsByUserIdQuery->bindValue(':start_date', $startDate);
@@ -308,12 +339,15 @@ class UserActions
                         `address`,
                         `address_ll`,
                         `screenname`,
-                        `message`
+                        `message`,
+                        `traffic`
                     FROM
                         `chats`
                     WHERE `user_id` = :user_id
-                    AND
-                        `is_99` != 0
+                    AND 
+                        `traffic` 
+                    IN
+                        ('Unparsed')
                     ORDER BY `send_time` ASC
                     ;");
                 $getChatsByUserIdQuery->bindValue(':user_id', $user['id']);
@@ -346,6 +380,7 @@ class UserActions
                 $chatsInfo['chats'][$i]['user'][99]                = $row['is_99'];
                 $chatsInfo['chats'][$i]['user']['screenname']      = $row['screenname'];
                 $chatsInfo['chats'][$i]['user']['ll']              = $row['ll'];
+                $chatsInfo['chats'][$i]['user']['traffic']              = $row['traffic'];
                 $chatsInfo['chats'][$i]['user']['age']             = $age;
                 $chatsInfo['chats'][$i]['user']['country']         = strtoupper($row['country']);
                 $chatsInfo['chats'][$i]['user']['birthday']        = $row['sender_birthday'];
@@ -425,7 +460,8 @@ class UserActions
                                 `address_ll`,
                                 `screenname`,
                                 `message`,
-                                `message_hash`
+                                `message_hash`,
+                                `traffic`
                             )
                             VALUES (
                                 :user_id,            
@@ -439,7 +475,8 @@ class UserActions
                                 :address_ll,
                                 :screenname,
                                 :message,
-                                :hash
+                                :hash,
+                                :traffic
                             )
                         ON DUPLICATE KEY UPDATE
                             `send_time` = :send_time2,
@@ -450,7 +487,8 @@ class UserActions
                             `is_99` = :is_992,
                             `sender_birthday` = :sender_birthday2,
                             `screenname` = :screenname2,
-                            `message` = :message2
+                            `message` = :message2,
+                            `traffic` = :traffic2
                         ;");
                         $paramArr               = array(
                             'user_id' => $userId,
@@ -458,6 +496,8 @@ class UserActions
                             'send_time' => $chatsInfo['chats'][$i]['message'][$y]['time'],
                             'send_time2' => $chatsInfo['chats'][$i]['message'][$y]['time'],
                             'sender_id' => $chatsInfo['chats'][$i]['user']['id'],
+                            'traffic' => $chatsInfo['chats'][$i]['user']['traffic'],
+                            'traffic2' => $chatsInfo['chats'][$i]['user']['traffic'],
                             'is_99' => $chatsInfo['chats'][$i]['user'][99],
                             'is_992' => $chatsInfo['chats'][$i]['user'][99],
                             'screenname' => $chatsInfo['chats'][$i]['user']['screenname'],
@@ -475,7 +515,6 @@ class UserActions
                             'message' => $chatsInfo['chats'][$i]['message'][$y]['text'],
                             'message2' => $chatsInfo['chats'][$i]['message'][$y]['text']
                         );
-                        echo '<pre>'.print_r($paramArr, true).'</pre>';
                         $insertChatsInfoQuery->execute($paramArr);
                     }
                     catch (PDOException $e) {
@@ -490,7 +529,7 @@ class UserActions
     
     public function getChatInfo($userId, $withUserId, $country)
     {
-        curl_setopt($this->adminCh, CURLOPT_URL, "https://my.ufins.com/user/chats?userId=$userId&withUserId=$withUserId");
+        curl_setopt($this->adminCh, CURLOPT_URL, "https://".$this->mainSite."/user/chats?userId=$userId&withUserId=$withUserId");
         curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 1);
         $out      = curl_exec($this->adminCh);
         $html     = new nokogiri($out);
@@ -530,42 +569,28 @@ class UserActions
     
     public function getUserInfo($userId)
     {
-        curl_setopt($this->adminCh, CURLOPT_URL, "https://my.ufins.com/user/find?FindUserForm[user]=" . $userId);
+        curl_setopt($this->adminCh, CURLOPT_URL, "https://".$this->mainSite.$this->findUrl."?user_id=" . $userId . "&json=true");
         curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 1);
         $out                     = curl_exec($this->adminCh);
-        $html                    = new nokogiri($out);
-        $elements                = $html->get("#yw1")->toArray();
-        if(!empty($elements)) {
-            $userInfo['id']         = isset($elements[0]['tr'][0]['td'][0]['#text']) ? $elements[0]['tr'][0]['td'][0]['#text'] : null;
-            $userInfo['mail']       = isset($elements[0]['tr'][2]['td'][0]['#text']) ? $elements[0]['tr'][2]['td'][0]['#text'] : null;
-            $userInfo['screenname'] = isset($elements[0]['tr'][4]['td'][0]['#text']) ? $elements[0]['tr'][4]['td'][0]['#text'] : null;
-            $userInfo['country']    = isset($elements[0]['tr'][13]['td'][0]['#text']) ? strtolower($elements[0]['tr'][13]['td'][0]['#text']) : null;
-            $userInfo['birthday']   = isset($elements[0]['tr'][14]['td'][0]['#text']) ? strtolower($elements[0]['tr'][14]['td'][0]['#text']) : null;
-            $traffic                = isset($elements[0]['tr'][34]['td'][0]['#text']) ? strtolower($elements[0]['tr'][34]['td'][0]['#text']) : null;
-            if ($traffic == "unparsed" || strpos($userInfo['mail'], '@ufins.com') || strpos($userInfo['mail'], 'import') || strpos($userInfo['mail'], '_import') || strpos($userInfo['mail'], '@cupid.com')) {
-                $userInfo['99'] = true;
+        $userInfoArray  = array_shift(array_shift(json_decode($out,true)));
+            $traffic                = $userInfoArray['trafficSource'];
+            if ($traffic == "Cams models" || $traffic == "Unparsed" || strpos($userInfo['mail'], '@ufins.com') || strpos($userInfo['mail'], 'import') || strpos($userInfo['mail'], '_import') || strpos($userInfo['mail'], '@cupid.com')) {
+                $is99 = true;
             } else {
-                $userInfo['99'] = false;
+                $is99 = false;
             }
-            $userInfo['ll'] = isset($elements[0]['tr'][21]) && isset($elements[0]['tr'][22]) ? strtolower($elements[0]['tr'][21]['td'][0]['#text']) . "," . strtolower($elements[0]['tr'][22]['td'][0]['#text']) : "no data";
-            curl_setopt($this->adminCh, CURLOPT_URL, "https://my.ufins.com/user/edit?user_id=" . $userId);
-            curl_setopt($this->adminCh, CURLOPT_RETURNTRANSFER, 1);
-            $out                     = curl_exec($this->adminCh);
-            $html                    = new nokogiri($out);
-            $elements                = $html->get("#location")->toArray();
-            $userInfo['address'] = $elements[0]['value'];
-            $userInfo['address_ll'] = $this->getCoordinates($userInfo['country'].', '.$userInfo['address']);
-        } else {
-            $userInfo['id']         = $userId;
-            $userInfo['mail']       = null;
-            $userInfo['screenname'] = null;
-            $userInfo['country']   = null;
-            $userInfo['birthday']   = null;
-            $userInfo['99']         = true;
-            $userInfo['address'] = null;
-            $userInfo['address_ll'] = null;
-            $userInfo['ll']         = "no data";
-        }
+            $userInfo = array(
+                'id'         => $userInfoArray['id'],
+                'mail'       => $userInfoArray['email'],
+                'screenname' => $userInfoArray['login'],
+                'country'    => $userInfoArray['country'],
+                'birthday'   => $userInfoArray['birthday'],
+                'traffic'    => $userInfoArray['trafficSource'],
+                'll'         => $userInfoArray['latitude'].':'.$userInfoArray['longitude'],
+                'address'    => $userInfoArray['city'].", ".$userInfoArray['regionCode'].", ".$userInfoArray['postcode'],
+                'address_ll' => $this->getCoordinates($userInfoArray['country'].', '.$userInfoArray['address']),
+            );
+            var_dump($userInfo);
         return $userInfo;
     }
     

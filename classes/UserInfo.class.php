@@ -13,6 +13,8 @@ class UserInfo
     var $type;
     var $login;
     var $pass;
+    var $authLogin;
+    var $authPass;
     var $siteConf;
     
     function UserInfo($DBH)
@@ -43,12 +45,10 @@ class UserInfo
         $this->setDc($dc);
         $this->adminLogin();
         curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . $this->findUrl . '/?FindUserForm[user]=' . urlencode($createria).'&json=true');
-            
-            curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-            $out            = curl_exec($this->ch);
-
+        $out            = curl_exec($this->ch);
+        
             $userInfoArray  = array_shift(array_shift(json_decode($out,true)));
-            
+
             $userInfo = array(
                 'id'          => $userInfoArray['id'],
                 'mail'        => $userInfoArray['email'],
@@ -135,10 +135,13 @@ class UserInfo
         $this->type      = $config['type'];
         $this->login     = $config['login'];
         $this->pass      = $config['pass'];
+        $this->authLogin     = $config['authLogin'];
+        $this->authPass      = $config['authPass'];
     }
     
     private function adminLogin()
     {
+        if(empty($this->ch)) {
         $this->ch = curl_init();
         $postArr = array(
             "AdminLoginForm" => array(
@@ -148,15 +151,25 @@ class UserInfo
             "YII_CSRF_TOKEN" => "",
             "yt0" => ""
         );
-        
-        curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . $this->loginUrl);
+        $headers = array('Authorization: Basic YW5kcmV5LmFyemhhbm92OkFub204QWx5ODk=');
+        curl_setopt($this->ch, CURLOPT_URL, "https://" . $this->mainSite . "/base");
+        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
         curl_setopt($this->ch, CURLOPT_COOKIEJAR, 'cookie.txt');
+        curl_setopt($this->ch, CURLOPT_HTTPHEADER,$headers);
         curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'cookie.txt');
+        curl_setopt($this->ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($this->ch, CURLOPT_USERPWD, $this->authLogin . ":" . $this->authPass);
         curl_setopt($this->ch, CURLOPT_VERBOSE, 1);
-        curl_setopt($this->ch, CURLOPT_POST, true);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($postArr));
+        curl_setopt($this->ch, CURLOPT_UNRESTRICTED_AUTH, 1);
+        curl_setopt($this->ch, CURLOPT_POST, 1);
+        curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 1);
+        //curl_setopt($this->ch, CURLOPT_HEADER, 1);
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->ch, CURLOPT_AUTOREFERER, 1);
         $out = curl_exec($this->ch);
+
+
+        }
     }
     
     public function setTestUsers()
@@ -981,11 +994,14 @@ class UserInfo
         if ($getSitesConfigQuery->rowCount() > 0) {
             $sitesConfig = array();
             while ($row = $getSitesConfigQuery->fetch()) {
+                $mainDomain = explode(".", $row['site_domain']);
+                $relDomain = $mainDomain[0].'.rel.platformphoenix.com';
                 $sitesConfig[$row['site_id']] = array(
                         'live'          => $row['site_url'],
                         'site_name'     => $row['site_name'],
                         'site_id'       => $row['site_id'],
                         'domain'        => $row['site_domain'],
+                        'domain_rel'    => $relDomain,
                         'company_name'  => $row['company_name'],
                         'locale'        => $row['locale'],
                         'dictionaryId'  => $row['dictionary_id'],
@@ -1069,6 +1085,8 @@ class UserInfo
                 $i = 0;
                 
                 while ($row = $findByEmailQuery->fetch()) {
+                    $mainDomain = explode(".", $row['site_domain']);
+                    $relDomain = $mainDomain[0].'.rel.platformphoenix.com';
                     $answer['data'][$i] = array(
                         'site'          => $row['site'],
                         'gender'        => $row['gender'],
@@ -1090,6 +1108,7 @@ class UserInfo
                         'chatsCount'    => $row['chats'],
                         'siteId'        => $row['site_id'],
                         'siteDomain'    => $row['site_domain'],
+                        'siteDomainRel' => $relDomain,
                         'searchable'    => $row['searchable'],
                         'splitGroup'    => hexdec(substr(md5($row['id']), 0, 4)) % 100,
                     );

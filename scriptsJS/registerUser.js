@@ -18,9 +18,10 @@
     console.log(system.args[11]);
     console.log(debug);
     var year = date.getFullYear()-age;
-    var day = 10;//addZero(date.getDay());
+    //var day = addZero(date.getDay());
+    var day = 10;
     var month = addZero(date.getMonth()+1);
-    var password = '123123';
+    var password = '123123a';
     var alphabet = ["a","b","c","d","e","f","g","h","i","k","l","m","n","o","p","q","r","s","t","v","x","y","z"];
 
     var screenname_adding = date.getTime().toString().slice(-5);
@@ -90,59 +91,73 @@ phantom.onError = function(msg, trace) {
             page.open('https://'+platform+'.'+site+referer, function() {
             });
         },
-
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom) {
-                $('#switcher2RegForm').click();  
+        },
+
+        
+        function() {
+            page.evaluate(function(phantom, debug) {
+                if(debug) console.log("$('#goreg').click();");
+                $('#goreg').click();
+                if(debug) console.log("$('#switcher2RegForm').click();");
+                $('#switcher2RegForm').click();
                 return;
-            }, phantom);
+            }, phantom, debug);
         },
         
         function() {
-            page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
             page.evaluate(function(phantom, gender, orientation, year, month, day, email, password, city, screenname, debug) {
-                $('.btn--popup').click();
                 if(debug) console.log("$('.btn--popup').click();");
+                $('.btn--popup').click();
+                if(debug) console.log("$('#UserForm_gender').val('"+gender+"').removeAttr('disabled');");
                 $('#UserForm_gender').val(gender).removeAttr('disabled');
+                if(debug) console.log("$('#formRegGender').val('"+gender+"').removeAttr('disabled');");
                 $('#formRegGender').val(gender).removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_gender').val("+gender+").removeAttr('disabled');");
+                if(debug) console.log("$('#UserForm_sexual_orientation').val('"+orientation+"').removeAttr('disabled');");
                 $('#UserForm_sexual_orientation').val(orientation).removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_sexual_orientation').val("+orientation+").removeAttr('disabled');");
+                if(debug) console.log("$('#UserForm_year').val('"+year+"').change().removeAttr('disabled');");
                 $('#UserForm_year').val(year).change().removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_year').val("+year+").change().removeAttr('disabled');");
+                if(debug) console.log("$('#UserForm_month').val('"+month+"').change().removeAttr('disabled');");
                 $('#UserForm_month').val(month).change().removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_month').val("+month+").change().removeAttr('disabled');");
-                $('#UserForm_day').val(day).change().removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_day').val("+day+").change().removeAttr('disabled');");
+                if(debug) console.log("$('#UserForm_day').val('"+10+"').change().removeAttr('disabled');");
+                $('#UserForm_day').val(10).change().removeAttr('disabled');
+                if(debug) console.log("$('#UserForm_login').val('"+screenname+"').change().removeAttr('disabled');");
                 $('#UserForm_login').val(screenname).change().removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_login').val("+screenname+").change().removeAttr('disabled');");
+                if(debug) console.log("postCode = $('#UserForm_location').val();");
+                postCode = '';
                 postCode = $('#UserForm_location').val();
                 if(debug) console.log("postCode = $('#UserForm_location').val();");
                 if(postCode) {
+                    if(debug && postCode) console.log("postCode = postCode.replace(/ /g, '');");
                     postCode = postCode.replace(/ /g, '');
-                }                
-                if(debug && postCode) console.log("postCode = postCode.replace(/ /g, '');");
-                if(postCode == '') {
-                    $('#UserForm_location').val(city).removeAttr('disabled');
-                    if(debug) console.log("$('#UserForm_location').val("+city+").removeAttr('disabled');");
                 }
+                console.log(postCode);
+                if(!postCode || postCode == '') {
+                    if(debug) console.log("$('#UserForm_location').val('"+city+"').removeAttr('disabled');");
+                    $('#UserForm_location').val(city).removeAttr('disabled');
+                }
+                if(debug) console.log("$('#UserForm_email').val('"+email+"').removeAttr('disabled');");
                 $('#UserForm_email').val(email).removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_email').val("+email+").removeAttr('disabled');");
+                if(debug) console.log("$('#UserForm_just_email').val('"+email+"').removeAttr('disabled');");
                 $('#UserForm_just_email').val(email).removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_just_email').val("+email+").removeAttr('disabled');");
+                if(debug) console.log("$('#UserForm_password').val('"+password+"').removeAttr('disabled');");
                 $('#UserForm_password').val(password).removeAttr('disabled');
-                if(debug) console.log("$('#UserForm_password').val("+password+").removeAttr('disabled');");
             }, phantom, gender, orientation, year, month, day, email, password, city, screenname, debug);
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");
-            page.evaluate(function(phantom) {
-                $('#register-form').submit();  
+            page.evaluate(function(phantom, debug) {
+                if(debug) console.log("$('#register-form').submit();");
+                $('#register-form').submit();
+                if(debug) console.log("$('#btn_register_submit').submit();");
+                $('#btn_register_submit').submit();
+                if(debug) console.log("$('#register_frm').submit();");
                 $('#register_frm').submit();
-                $('#reg-form').submit();                
+                if(debug) console.log("$('#reg-form').submit();");
+                $('#reg-form').submit();
                 return;
-            }, phantom);
+            }, phantom, debug);
         },
         function() {
             page.includeJs("https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js");

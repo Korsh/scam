@@ -20,14 +20,14 @@ Once task #{$task_id}
 
 {foreach item=user from=$users_info name=users_info}
     <tr>
-        <td>{$user.site}
+        <td class="_unselectable">{$user.site}
             <span class="unselectable"><a target="_blank" href="https://{$user.site}.com/site/autologin/key/{$user.key}">{$user.site}</a>({$user.country})<br>
             {$user.mail}<br>
             {$user.gender}<br>
             {$user.register}<br>
             {$user.birthday}<br>
             searchable: {$user.searchable}<br></span>
-            <a class="link get_user_info">{$user.id}</a><br>
+            <a class="_link _get_user_info">{$user.id}</a><br>
             <span class="unselectable"><a target="_blank" href="https://my.ufins.com/user/find?user_id={$user.id}">admin</a><br>
             {$user.platform}
             <br>
@@ -40,7 +40,7 @@ Once task #{$task_id}
             {foreach item=chat from=$user.chats}
             
                 {if $chat.message != 'empty' && $chat.user != 'empty'}
-                <tr {if $chat.user.99}
+                <tr {if $chat.user.traffic == 'Unparsed'}
                         class="green"
                 {else}
                         class="yellow"
@@ -51,7 +51,7 @@ Once task #{$task_id}
                      No:{$chat.user.id}
                     </td>
                     {else}
-                    <td><span class="unselectable"><b>{$chat.user.screenname}</b>, ({$chat.user.age})<br><span  class="unselectable"><b>{$chat.message.time}</b></span><br></span><a {if $chat.user.99 == 1 && ($chat.user.distance_error || $chat.message.message_error)}class="selectable red"{else}class="unselectable"{/if} target="_blank" href="https://my.ufins.com/user/edit?user_id={$chat.user.id}">{$chat.user.id}</a><br></td>
+                    <td><span class="unselectable"><b>{$chat.user.traffic}</b>, ({$chat.user.age})<br><span  class="unselectable"><b>{$chat.message.time}</b></span><br></span><a {if ($chat.user.traffic == 'Cams models' || $chat.user.traffic == 'Unparsed') && ($chat.user.distance_error || $chat.message.message_error)}class="selectable red"{else}class="selectable"{/if} target="_blank" href="https://my.ufins.com/user/edit?user_id={$chat.user.id}">{$chat.user.id}</a><br></td>
                     <!--<td>is 99: {$chat.user.99}</td>-->
                     <!--<td {if $chat.user.99 == 1 && $chat.user.distance_error == 'true'}
                         class="red"

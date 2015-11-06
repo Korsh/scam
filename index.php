@@ -27,7 +27,7 @@ define('SMARTY_TEMPLATE_С_DIR', SMARTY_TEMPLATE_DIR . 'templates_c/');
 $ui = new UserInfo($DBH);
 require_once(INCLUDE_DIR . 'sites_conf.php');
 require_once(INCLUDE_DIR . 'proxy_conf.php');
-$userActions = new UserActions($DBH, $proxy);
+$userActions = new UserActions($DBH, $adminConf[0], $proxy);
 
 $smarty                = new Smarty;
 $smarty->compile_check = true;

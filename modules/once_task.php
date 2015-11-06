@@ -12,8 +12,6 @@ if (isset($param[3])) {
     $response  = $ui->getUserByTaskId($task_id, $site, $location, $status);
     $task_info = $ui->getTaskInfo($task_id);
     if (isset($response)) {
-        $userActions->setAdminLoginPass($adminConf[0]['login'], $adminConf[0]['pass']);
-        $userActions->adminLogin();
         for ($i = 0; $i < sizeof($response); $i++) {
             if (isset($_REQUEST['activity'])) {
                 $response[$i] = array_merge($response[$i], $userActions->getUserActivity($response[$i]['id']));
@@ -60,7 +58,7 @@ if (isset($_REQUEST['ajax'])) {
         }
 
         $city = $cityArr[rand(0,7)];*/
-                echo trim("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city ". $referer);
+                echo trim("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city $request_id $referer");
                 $script                 = "scriptsJS/confirmUser.js";
                 $autologin              = "https://quierorollo.com/site/autologin/key/76822422ba1924be5c478c17ae0b7702";
                 //echo "libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $autologin " . $proxy[$country]['ipAddress'] . " $site";
@@ -72,15 +70,7 @@ if (isset($_REQUEST['ajax'])) {
             echo json_encode($response);
             exit;
         }
-        /*--proxy=".$proxy[$country]['domain'].":".$proxy[$country]['port']." --proxy-auth=andreya@ufins.com:srmlvpkk*/
-        /*if($country == "GBR") {
-            $cityArr = array('Blackrod,+BL6', 'Coppull,+PR7', 'Rushden,+NN10', 'Huntingdon,+PE28', 'Holmpton,+HU19', 'Winestead,+HU12', 'Stretton,+WA4', 'Thorpe Bay,+SS1');
-        } elseif ($country == "AUS") {
-            $cityArr = array('Mawson,+7151', 'Belfield,+2191', 'Turrella,+2205', 'Sandringham,+2219', 'Jabiru,+0886', 'Gunyangara,+0880', 'York Town,+7270', 'Woollahra,+2025');
-        } elseif ($country == "CAN") {
-            $cityArr = array('Westwold,+V0E+3B0', 'Walhachin,+V0K+2P0', 'Ulukhaktok,+X0E+0S0', 'Woodbridge,+L4L+9T8', 'Wilmot Station,+B0P+1W0', 'Paradise,+B0S+1R0', 'Wheatley River,+C1E+0T4', 'Yarmouth,+B5A+4W3');
-        }
-        $city = $cityArr[rand(0,7)];*/
+
         $script_result = trim(shell_exec("libs/PhantomJS/phantomjs --ignore-ssl-errors=true --ssl-protocol=any $script $site $email $device $gender $orientation $age " . $proxy[$country]['ipAddress'] . " $city $request_id $referer"));
         $email = is_valid_email_address($script_result) ? $script_result : array('response' => $script_result  , 'result' => 'false');
         if(is_array($email)) {
@@ -116,8 +106,9 @@ if (isset($_REQUEST['ajax'])) {
         } else {
             $ui->saveTmpUser($email);
             $response = array(
-                'result' => false,
+                'result' => true,
                 'request_id' => $request_id,
+                'data' => array('email' => $email),
             );
         }
         echo json_encode($response);
@@ -129,15 +120,14 @@ if (isset($_REQUEST['ajax'])) {
         $activity = $userActions->getUserActivity($_REQUEST['userId']);
         echo json_encode($activity);
         exit;
-    } elseif (isset($_REQUEST['get_user_info']) && isset($_REQUEST['userId'])) {
-        $userId   = isset($_REQUEST['userId']) ? $_REQUEST['userId'] : false;
+    } elseif (isset($_REQUEST['get_user_info']) && isset($_REQUEST['user_id'])) {
+        $userId   = isset($_REQUEST['user_id']) ? $_REQUEST['userId'] : false;
         $user_info = $ui->findById($userId);
         echo json_encode($user_info);
         exit;
     } elseif (isset($_REQUEST['id']) && $_REQUEST["activity"]) {
+        echo 1;
         $ui->syncUserInfo($_REQUEST['id'], $adminConf[0]);
-        $userActions->setAdminLoginPass($adminConf[0]['login'], $adminConf[0]['pass']);
-        $userActions->adminLogin();
         $userActions->getUserActivity($_REQUEST['id']);
         echo '{result:true}';
         exit;

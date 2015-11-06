@@ -1,6 +1,7 @@
 <?php
 
 $sites = $ui->getSitesConfig();
+
 function cmp($a, $b)
 {
     return strcmp($a["site_name"], $b["site_name"]);
@@ -27,6 +28,7 @@ $sites['locales'] = array(
 );
 function findDictionaryIdInSitesConfig($siteToFind, $siteConfig)
 {
+
     $dictionaryId = false;
     foreach($siteConfig as $site) {
         if(($site['site_name'] == $siteToFind)

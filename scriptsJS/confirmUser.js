@@ -84,6 +84,7 @@ page.onError = function (msg, trace) {
         function() {
             console.log('https://'+platform+'.'+autologin);
             page.open('https://'+platform+'.'+autologin, function(status) {
+                document.cookie = 'searchDebug=1;';
                 console.log(status);
             });
         },
